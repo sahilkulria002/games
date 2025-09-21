@@ -86,6 +86,14 @@ class GameSession:
         self.ai_players[ai_id] = SnakeAI(self.game_id, ai_id)
         return ai_id
     
+    def generate_food(self):
+        """Generate new food at random position"""
+        import random
+        self.game_state["food"] = {
+            "x": random.randint(1, 38),  # Assuming 800px canvas with 20px grid
+            "y": random.randint(1, 28)   # Assuming 600px canvas with 20px grid
+        }
+    
     def update_game_state(self):
         if not self.game_state["started"] or self.game_state["ended"]:
             return
@@ -105,9 +113,21 @@ class GameSession:
             else:
                 ai_player.snake.pop()
 
+
+# Main landing page
 @app.route('/')
-def index():
-    return render_template('index.html')
+def main():
+    return render_template('main.html')
+
+
+@app.route('/snake')
+def snake():
+    return render_template('snake.html')
+
+# Piano game placeholder
+@app.route('/piano')
+def piano():
+    return '<h2 style="color:#00ff88;text-align:center;margin-top:80px;">🎹 Piano Game Coming Soon!</h2>'
 
 @app.route('/api/leaderboard')
 def get_leaderboard():

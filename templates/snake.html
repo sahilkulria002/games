@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
     .eaten-letter { color: #fff; background: #00ff88; border-radius: 6px; padding: 2px 6px; font-weight: bold; box-shadow: 0 2px 8px #00ff8844; }
     body { margin: 0; }
@@ -52,13 +53,12 @@
         <div class="wordInputContainer">
             <div style="background:rgba(0,0,0,0.4); border-radius:16px; box-shadow:0 2px 16px #00ff8844; padding:24px 18px; min-width:220px; max-width:340px;">
                 <label for="wordInput" style="color:#00ff88; font-size:1.1rem; font-weight:bold;">Words for Snake Food:</label>
-                <textarea id="wordInput" placeholder="Enter words (space or new line separated)" style="padding:14px; border-radius:10px; border:none; width:100%; height:340px; font-size:1.1rem; margin-top:10px; background:#181c24; color:#fff; box-shadow:0 2px 12px #0088ff22;"></textarea>
+                <textarea id="wordInput" placeholder="Enter words (space or new line separated)" style="padding:14px; border-radius:10px; border:none; width:100%; height:160px; font-size:1.1rem; margin-top:10px; background:#181c24; color:#fff; box-shadow:0 2px 12px #0088ff22;"></textarea>
                 <button class="btn" id="setWordsBtn" style="margin-top:14px; width:100%; background:linear-gradient(45deg,#00ff88,#0088ff);color:#fff;">Set Words</button>
             </div>
         </div>
     </div>
     <script>
-    // --- JS logic copied from working snake.html ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
