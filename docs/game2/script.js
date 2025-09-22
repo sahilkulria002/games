@@ -114,8 +114,28 @@ if (startTextModeBtn) {
             return;
         }
         textProgress.textContent = '';
+        mode = 'text';
+        modeBtns.forEach(btn => btn.classList.remove('active'));
+        btnText.classList.add('active');
+        textPanel.style.display = '';
         startGame();
     });
+}
+
+// Replace the default restart button logic
+const restartBtn = document.getElementById('restart-btn');
+if (restartBtn) {
+    restartBtn.onclick = function() {
+        gameOverEl.style.display = 'none';
+        if (mode === 'text' && customText && customText.length > 0) {
+            textPanel.style.display = '';
+            // Don't reset customText or textIndex, just restart
+            textProgress.textContent = '';
+            startGame();
+        } else {
+            startGame();
+        }
+    };
 }
 
 function randomLetter() {
@@ -131,7 +151,7 @@ function spawnLetter() {
     const colIdx = Math.floor(Math.random() * NUM_COLS);
     let letter = randomLetter();
     // Only spawn valid letters in columns
-    while (letter === ' ' || letter === '\n') {
+    while ((letter === '\n') || (mode === 'text' && customText && textIndex < customText.length && letter === '')) {
         textIndex++;
         letter = randomLetter();
         if (mode !== 'text' || textIndex >= (customText ? customText.length : 0)) break;
@@ -139,10 +159,20 @@ function spawnLetter() {
     if (mode === 'text' && customText && textIndex >= customText.length) return;
     const letterDiv = document.createElement('div');
     letterDiv.className = 'falling-letter';
-    letterDiv.textContent = letter;
+    // Show special characters visually
+    if (mode === 'text') {
+        if (letter === ' ') {
+            letterDiv.innerHTML = '<span style="font-size:1.2em;">␣</span>';
+        } else if (letter === '\t') {
+            letterDiv.innerHTML = '<span style="font-size:1.2em;">⇥</span>';
+        } else {
+            letterDiv.textContent = letter;
+        }
+    } else {
+        letterDiv.textContent = letter;
+    }
     letterDiv.dataset.letter = letter;
     letterDiv.dataset.col = colIdx;
-    // Start above the visible area
     letterDiv.style.top = '-70px';
     columns[colIdx].appendChild(letterDiv);
     fallingLetters.push({
@@ -194,8 +224,9 @@ function gameLoop() {
 
 document.addEventListener('keydown', (e) => {
     if (!gameActive) return;
-    const key = e.key;
-    let found = false;
+    if (e.target.tagName === 'TEXTAREA') return; // Don't catch keys while typing text
+    let key = e.key;
+    if (key === ' ' || key === 'Spacebar') key = ' ';
     for (let i = 0; i < fallingLetters.length; i++) {
         const obj = fallingLetters[i];
         if (!obj.caught && obj.letter.toLowerCase() === key.toLowerCase()) {
@@ -211,14 +242,47 @@ document.addEventListener('keydown', (e) => {
                 // Show progress
                 let progress = '';
                 for (let j = 0; j < textIndex; j++) {
-                    if (j < score) progress += `<span style='color:#2ecc40;'>${customText[j]}</span>`;
-                    else progress += `<span style='color:#fff;'>${customText[j]}</span>`;
+                    let displayChar = customText[j];
+                    if (displayChar === ' ') displayChar = '␣';
+                    if (j < score) progress += `<span style='color:#2ecc40;'>${displayChar}</span>`;
+                    else progress += `<span style='color:#fff;'>${displayChar}</span>`;
                 }
                 textProgress.innerHTML = progress;
             }
-            found = true;
             break;
         }
+    }
+});
+
+// Add speed slider to both left and right panels if not present
+function addSpeedSlider(targetPanel, idSuffix) {
+    if (targetPanel && !document.getElementById('speed-range-' + idSuffix)) {
+        const speedDiv = document.createElement('div');
+        speedDiv.className = 'speed-control-right';
+        speedDiv.innerHTML = `
+            <label for="speed-range-${idSuffix}" style="color:#a0e9ff;">Speed</label>
+            <input type="range" id="speed-range-${idSuffix}" min="1" max="10" value="2">
+            <span id="speed-value-${idSuffix}">2</span> px/frame
+        `;
+        targetPanel.appendChild(speedDiv);
+        const speedRange = document.getElementById('speed-range-' + idSuffix);
+        const speedValue = document.getElementById('speed-value-' + idSuffix);
+        speedRange.addEventListener('input', (e) => {
+            FALL_SPEED = Number(speedRange.value);
+            speedValue.textContent = speedRange.value;
+        });
+        speedValue.textContent = speedRange.value;
+        FALL_SPEED = Number(speedRange.value);
+    }
+}
+
+addSpeedSlider(document.querySelector('.controls-panel'), 'left');
+addSpeedSlider(document.getElementById('text-panel'), 'right');
+
+// Remove spacebar as speed shortcut
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
     }
 });
 

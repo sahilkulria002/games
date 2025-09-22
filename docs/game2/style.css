@@ -362,3 +362,22 @@ h1 {
     word-break: break-all;
     min-height: 24px;
 }
+
+.speed-control-right {
+    margin-top: 18px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1em;
+}
+
+#speed-range-right {
+    width: 80px;
+    margin: 0 8px;
+}
+
+#speed-value-right {
+    font-weight: bold;
+    color: #4f8cff;
+}
