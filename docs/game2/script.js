@@ -1,7 +1,14 @@
 const NUM_COLS = 6;
 let FALL_SPEED = 2; // pixels per frame, now adjustable
-const SPAWN_INTERVAL = 1200; // ms
+let SPAWN_INTERVAL = 1200; // ms, adjustable based on speed
 const LIVES_START = 5;
+
+// Function to calculate spawn interval based on speed
+function getSpawnInterval(speed) {
+    // Speed 1 (slowest): 2000ms interval
+    // Speed 10 (fastest): 400ms interval
+    return Math.max(400, 2200 - (speed * 180));
+}
 
 
 let score = 0;
@@ -270,9 +277,16 @@ function addSpeedSlider(targetPanel, idSuffix) {
         speedRange.addEventListener('input', (e) => {
             FALL_SPEED = Number(speedRange.value);
             speedValue.textContent = speedRange.value;
+            SPAWN_INTERVAL = getSpawnInterval(FALL_SPEED);
+            // Restart timer with new interval if game is active
+            if (gameActive && spawnTimer) {
+                clearInterval(spawnTimer);
+                spawnTimer = setInterval(spawnLetter, SPAWN_INTERVAL);
+            }
         });
         speedValue.textContent = speedRange.value;
         FALL_SPEED = Number(speedRange.value);
+        SPAWN_INTERVAL = getSpawnInterval(FALL_SPEED);
     }
 }
 
@@ -301,6 +315,7 @@ function startGame() {
     if (mode === 'text' && customText) {
         textProgress.innerHTML = '';
     }
+    SPAWN_INTERVAL = getSpawnInterval(FALL_SPEED);
     spawnTimer = setInterval(spawnLetter, SPAWN_INTERVAL);
     requestAnimationFrame(gameLoop);
 }
