@@ -5,15 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Typing Game</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ui-fixes.css">
 </head>
 <body>
-    <h1>Piano Typing Game</h1> script.js:102 Uncaught ReferenceError: startGame is not defined
+    <h1>Piano Typing Game</h1>
     <div class="main-layout">
         <div class="controls-panel">
             <h3>Game Mode</h3>
             <div class="mode-buttons">
-                <button id="btn-random" class="mode-btn active">Random Letters</button>
-                <button id="btn-text" class="mode-btn">Type the Text</button>
+                <button id="btn-upper" class="mode-btn">Upper Row</button>
+                <button id="btn-middle" class="mode-btn active">Middle Row</button>
+                <button id="btn-lower" class="mode-btn">Lower Row</button>
+                <button id="btn-all" class="mode-btn">All Letters</button>
+                <button id="btn-text" class="mode-btn">Custom Text</button>
             </div>
             <div class="score-lives">
                 <span id="score">Score: 0</span>

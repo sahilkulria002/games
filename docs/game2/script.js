@@ -31,23 +31,67 @@ const customTextArea = document.getElementById('custom-text');
 const startTextModeBtn = document.getElementById('start-text-mode');
 const textProgress = document.getElementById('text-progress');
 
-let mode = 'random';
+let mode = 'middle';
 let customText = '';
 let textIndex = 0;
 let gameStarted = false;
 
-const btnRandom = document.getElementById('btn-random');
+const btnUpper = document.getElementById('btn-upper');
+const btnMiddle = document.getElementById('btn-middle');
+const btnLower = document.getElementById('btn-lower');
+const btnAll = document.getElementById('btn-all');
 const btnText = document.getElementById('btn-text');
 const startGameBtn = document.getElementById('start-game');
-const modeBtns = [btnRandom, btnText];
+const modeBtns = [btnUpper, btnMiddle, btnLower, btnAll, btnText];
+
+// Define keyboard rows
+const KEYBOARD_ROWS = {
+    upper: 'QWERTYUIOP',
+    middle: 'ASDFGHJKL',
+    lower: 'ZXCVBNM',
+    all: 'QWERTYUIOPASDFGHJKLZXCVBNM'
+};
 
 // Hide text panel initially
 textPanel.style.display = 'none';
 
-btnRandom.addEventListener('click', () => {
-    mode = 'random';
+btnUpper.addEventListener('click', () => {
+    mode = 'upper';
     modeBtns.forEach(btn => btn.classList.remove('active'));
-    btnRandom.classList.add('active');
+    btnUpper.classList.add('active');
+    textPanel.style.display = 'none';
+    customText = '';
+    textIndex = 0;
+    textProgress.textContent = '';
+    stopGame();
+});
+
+btnMiddle.addEventListener('click', () => {
+    mode = 'middle';
+    modeBtns.forEach(btn => btn.classList.remove('active'));
+    btnMiddle.classList.add('active');
+    textPanel.style.display = 'none';
+    customText = '';
+    textIndex = 0;
+    textProgress.textContent = '';
+    stopGame();
+});
+
+btnLower.addEventListener('click', () => {
+    mode = 'lower';
+    modeBtns.forEach(btn => btn.classList.remove('active'));
+    btnLower.classList.add('active');
+    textPanel.style.display = 'none';
+    customText = '';
+    textIndex = 0;
+    textProgress.textContent = '';
+    stopGame();
+});
+
+btnAll.addEventListener('click', () => {
+    mode = 'all';
+    modeBtns.forEach(btn => btn.classList.remove('active'));
+    btnAll.classList.add('active');
     textPanel.style.display = 'none';
     customText = '';
     textIndex = 0;
@@ -105,7 +149,7 @@ if (modeSelect) {
 }
 
 startGameBtn.addEventListener('click', () => {
-    if (mode === 'random') {
+    if (mode === 'upper' || mode === 'middle' || mode === 'lower' || mode === 'all') {
         startGame();
     } else if (mode === 'text') {
         alert('Please enter your text and click "Start Text Mode" to begin.');
@@ -149,7 +193,7 @@ function randomLetter() {
     if (mode === 'text' && customText && textIndex < customText.length) {
         return customText[textIndex];
     }
-    const letters = 'ASDFJK';
+    let letters = KEYBOARD_ROWS[mode] || KEYBOARD_ROWS.middle;
     return letters[Math.floor(Math.random() * letters.length)];
 }
 
@@ -230,8 +274,26 @@ function gameLoop() {
 }
 
 document.addEventListener('keydown', (e) => {
-    if (!gameActive) return;
-    if (e.target.tagName === 'TEXTAREA') return; // Don't catch keys while typing text
+    if (!gameActive && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    if (e.target.tagName === 'TEXTAREA' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; // Don't catch keys while typing text
+    
+    // Arrow key speed controls (work even when game is not active)
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (FALL_SPEED < 10) {
+            FALL_SPEED++;
+            updateAllSpeedControls();
+        }
+        return;
+    } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (FALL_SPEED > 1) {
+            FALL_SPEED--;
+            updateAllSpeedControls();
+        }
+        return;
+    }
+    
     let key = e.key;
     if (key === ' ' || key === 'Spacebar') key = ' ';
     for (let i = 0; i < fallingLetters.length; i++) {
@@ -318,4 +380,25 @@ function startGame() {
     SPAWN_INTERVAL = getSpawnInterval(FALL_SPEED);
     spawnTimer = setInterval(spawnLetter, SPAWN_INTERVAL);
     requestAnimationFrame(gameLoop);
+}
+
+// Function to update all speed controls when using arrow keys
+function updateAllSpeedControls() {
+    const speedSliders = document.querySelectorAll('[id^="speed-range-"]');
+    const speedValues = document.querySelectorAll('[id^="speed-value-"]');
+    
+    speedSliders.forEach(slider => {
+        slider.value = FALL_SPEED;
+    });
+    
+    speedValues.forEach(valueSpan => {
+        valueSpan.textContent = FALL_SPEED;
+    });
+    
+    // Update spawn interval
+    SPAWN_INTERVAL = getSpawnInterval(FALL_SPEED);
+    if (gameActive) {
+        if (spawnTimer) clearInterval(spawnTimer);
+        spawnTimer = setInterval(spawnLetter, SPAWN_INTERVAL);
+    }
 }

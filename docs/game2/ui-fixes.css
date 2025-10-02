@@ -1,0 +1,42 @@
+/* Layout fixes for mode buttons */
+.mode-buttons {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 8px !important;
+    margin-bottom: 22px !important;
+    width: 100% !important;
+}
+
+.mode-btn {
+    padding: 8px 6px !important;
+    font-size: 0.85em !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: linear-gradient(90deg, #4f8cff 60%, #a0e9ff 100%) !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s !important;
+    box-shadow: 0 2px 8px #0002 !important;
+    outline: none !important;
+    font-weight: bold !important;
+    letter-spacing: 0.5px !important;
+    position: relative !important;
+    text-align: center !important;
+    min-height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.mode-btn.active, .mode-btn:focus {
+    background: #2a3147 !important;
+    color: #a0e9ff !important;
+    box-shadow: 0 0 0 2px #4f8cff !important;
+    transform: scale(1.02) !important;
+}
+
+/* Make the last button span both columns */
+.mode-btn:nth-child(5) {
+    grid-column: 1 / -1 !important;
+}
