@@ -5,25 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piano Typing Game</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="ui-fixes.css">
 </head>
 <body>
     <h1>Piano Typing Game</h1>
+    <!-- Universal top controls for all modes -->
+    <div id="universal-top-controls">
+        <div class="top-controls-content">
+            <button id="btn-upper-main" class="mode-btn">Upper Row</button>
+            <button id="btn-middle-main" class="mode-btn active">Middle Row</button>
+            <button id="btn-lower-main" class="mode-btn">Lower Row</button>
+            <button id="btn-all-main" class="mode-btn">All Letters</button>
+            <button id="btn-keyboard-main" class="mode-btn">Keyboard</button>
+            <button id="btn-text-main" class="mode-btn">Custom Text</button>
+            <div class="score-lives">
+                <span id="score-main">Score: 0</span>
+                <span id="lives-main">Lives: 5</span>
+            </div>
+            <button id="start-game-main" class="start-btn">Start Game</button>
+            <button id="pause-game-main" class="pause-btn" style="display:none;">Pause</button>
+        </div>
+    </div>
+    <!-- Keyboard mode specific top controls (hidden by default) -->
+    <div id="top-controls" style="display:none;">
+        <div class="top-controls-content">
+            <button id="btn-upper-top" class="mode-btn">Upper Row</button>
+            <button id="btn-middle-top" class="mode-btn">Middle Row</button>
+            <button id="btn-lower-top" class="mode-btn">Lower Row</button>
+            <button id="btn-all-top" class="mode-btn">All Letters</button>
+            <button id="btn-keyboard-top" class="mode-btn active">Keyboard</button>
+            <button id="btn-text-top" class="mode-btn">Custom Text</button>
+            <div class="score-lives">
+                <span id="score-top">Score: 0</span>
+                <span id="lives-top">Lives: 5</span>
+            </div>
+            <div class="speed-control-top">
+                <label for="speed-range-top">Speed</label>
+                <input type="range" id="speed-range-top" min="1" max="10" value="2">
+                <span id="speed-value-top">2</span> px/frame
+            </div>
+            <div class="spawn-rate-control-top">
+                <label for="spawn-rate-range-top">Rate</label>
+                <input type="range" id="spawn-rate-range-top" min="10" max="60" value="30">
+                <span id="spawn-rate-value-top">30</span> l/min
+            </div>
+            <button id="start-game-top" class="start-btn">Start Game</button>
+            <button id="pause-game-top" class="pause-btn" style="display:none;">Pause</button>
+        </div>
+    </div>
+
     <div class="main-layout">
         <div class="controls-panel">
-            <h3>Game Mode</h3>
-            <div class="mode-buttons">
-                <button id="btn-upper" class="mode-btn">Upper Row</button>
-                <button id="btn-middle" class="mode-btn active">Middle Row</button>
-                <button id="btn-lower" class="mode-btn">Lower Row</button>
-                <button id="btn-all" class="mode-btn">All Letters</button>
-                <button id="btn-text" class="mode-btn">Custom Text</button>
-            </div>
+            <h3>Game Controls</h3>
             <div class="score-lives">
                 <span id="score">Score: 0</span>
                 <span id="lives">Lives: 5</span>
             </div>
-            <button id="start-game" class="start-btn">Start Game</button>
+            <div class="speed-control">
+                <label for="speed-range">Speed</label>
+                <input type="range" id="speed-range" min="1" max="10" value="2">
+                <span id="speed-value">2</span> px/frame
+            </div>
+            <div class="spawn-rate-control">
+                <label for="spawn-rate-range">Spawn Rate</label>
+                <input type="range" id="spawn-rate-range" min="10" max="60" value="30">
+                <span id="spawn-rate-value">30</span> letters/min
+            </div>
         </div>
         <div id="game-board">
             <!-- 6 columns for falling letters -->
@@ -37,14 +83,69 @@
         <div class="text-panel" id="text-panel" style="display:none;">
             <h3>Custom Text</h3>
             <textarea id="custom-text" rows="5" placeholder="Enter text for typing mode..."></textarea>
-            <button id="start-text-mode">Start Text Mode</button>
             <div id="text-progress" style="margin-top:10px; color:#a0e9ff;"></div>
+        </div>
+    </div>
+
+    <!-- Keyboard mode game board -->
+    <div id="keyboard-game-board" style="display:none;">
+        <!-- Letters will be positioned based on keyboard layout -->
+    </div>
+
+    <!-- Bottom controls for keyboard mode -->
+    <div id="bottom-controls" style="display:none;">
+        <div class="bottom-controls-content">
+            <div class="keyboard-visual">
+                <div class="keyboard-row row-1">
+                    <span class="key">Q</span>
+                    <span class="key">W</span>
+                    <span class="key">E</span>
+                    <span class="key">R</span>
+                    <span class="key">T</span>
+                    <span class="key">Y</span>
+                    <span class="key">U</span>
+                    <span class="key">I</span>
+                    <span class="key">O</span>
+                    <span class="key">P</span>
+                </div>
+                <div class="keyboard-row row-2">
+                    <span class="key">A</span>
+                    <span class="key">S</span>
+                    <span class="key">D</span>
+                    <span class="key">F</span>
+                    <span class="key">G</span>
+                    <span class="key">H</span>
+                    <span class="key">J</span>
+                    <span class="key">K</span>
+                    <span class="key">L</span>
+                </div>
+                <div class="keyboard-row row-3">
+                    <span class="key">Z</span>
+                    <span class="key">X</span>
+                    <span class="key">C</span>
+                    <span class="key">V</span>
+                    <span class="key">B</span>
+                    <span class="key">N</span>
+                    <span class="key">M</span>
+                </div>
+            </div>
         </div>
     </div>
     <div id="game-over" style="display:none;">
         <h2>Game Over!</h2>
         <p id="final-score"></p>
-        <button id="restart-btn">Restart</button>
+        <div class="game-over-buttons">
+            <button id="restart-btn">Restart</button>
+            <button id="menu-btn">Menu</button>
+        </div>
+    </div>
+    <div id="you-won" style="display:none;">
+        <h2>You Won!</h2>
+        <p id="completion-message">Congratulations! You've completed all the text!</p>
+        <div class="game-over-buttons">
+            <button id="play-again-btn">Play Again</button>
+            <button id="menu-btn-win">Menu</button>
+        </div>
     </div>
     <div id="bottom-info">
         <div class="bottom-bar-content">
