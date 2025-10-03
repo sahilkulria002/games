@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Table - Spelling Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header Controls -->
+        <div class="header-controls">
+            <h1>Memory Table</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="display-time">Display Time:</label>
+                    <input type="range" id="display-time" min="1" max="10" value="2" step="0.5">
+                    <span id="display-time-value">2.0s</span>
+                </div>
+                <button id="new-word-btn">New Word</button>
+                <button id="start-btn">Start Game</button>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Word Display (center) -->
+            <div class="word-display" id="word-display">
+                <h2 id="current-word">HELLO</h2>
+            </div>
+
+            <!-- Letter Boxes Container -->
+            <div class="letters-container" id="letters-container">
+                <!-- Original placeholder boxes (center) -->
+                <div class="placeholder-boxes" id="placeholder-boxes">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <!-- Scattered letter boxes -->
+                <div class="scattered-letters" id="scattered-letters">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="typed-letters" id="typed-letters">
+                    <!-- Will show letters as user types -->
+                </div>
+                <div class="input-feedback" id="input-feedback">
+                    Type the spelling: <span id="progress-text"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Status -->
+        <div class="game-status">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="level">Level: <span id="level">1</span></div>
+            <div class="timer">Time: <span id="timer">0s</span></div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div class="message-overlay" id="message-overlay">
+            <div class="message-content" id="message-content">
+                <h2 id="message-title">Well Done!</h2>
+                <p id="message-text">You spelled the word correctly!</p>
+                <button id="next-word-btn">Next Word</button>
+                <button id="menu-btn">Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
