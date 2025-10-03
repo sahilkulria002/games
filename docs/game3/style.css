@@ -110,29 +110,7 @@ button:active {
     overflow: hidden;
 }
 
-.word-display {
-    text-align: center;
-    margin-bottom: 40px;
-    opacity: 1;
-    transition: opacity 0.5s ease;
-}
 
-.word-display.hidden {
-    opacity: 0;
-}
-
-#current-word {
-    font-size: 4rem;
-    font-weight: bold;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-    letter-spacing: 4px;
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.2); }
-    to { text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 255, 255, 0.4); }
-}
 
 /* Letters Container */
 .letters-container {
@@ -163,28 +141,54 @@ button:active {
     font-weight: bold;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .letter-box.filled {
-    background: rgba(76, 175, 80, 0.3);
+    background: rgba(76, 175, 80, 0.8);
     border-color: #4CAF50;
-    color: #4CAF50;
-    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
 }
 
 .letter-box.error {
-    background: rgba(244, 67, 54, 0.3);
+    background: rgba(244, 67, 54, 0.8);
     border-color: #f44336;
-    color: #f44336;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     animation: shake 0.5s ease-in-out;
+    font-weight: bold;
 }
 
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
+}
+
+@keyframes victoryPulse {
+    0% { 
+        box-shadow: 0 0 30px rgba(76, 175, 80, 1), 0 0 60px rgba(76, 175, 80, 0.5);
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 40px rgba(76, 175, 80, 1), 0 0 80px rgba(76, 175, 80, 0.8);
+        transform: scale(1.1);
+    }
+}
+
+.sparkle-particle {
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+    animation: sparkleRotate 1.2s linear;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 1);
+}
+
+@keyframes sparkleRotate {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.5); }
+    100% { transform: rotate(360deg) scale(0); }
 }
 
 .scattered-letters {
@@ -209,9 +213,9 @@ button:active {
     background: linear-gradient(45deg, #4CAF50, #45a049);
     color: white;
     cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.8s cubic-bezier(0.4, 0, 0.2, 1), top 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    z-index: 5;
+    z-index: 20;
 }
 
 .scattered-letter:hover {
@@ -220,7 +224,7 @@ button:active {
 }
 
 .scattered-letter.moving {
-    z-index: 15;
+    z-index: 25;
     transform: scale(1.1);
 }
 
