@@ -145,7 +145,7 @@ btnKeyboard.addEventListener('click', () => {
 });
 
 btnText.addEventListener('click', () => {
-    mode = 'text';
+    mode = 'custom';
     modeBtns.forEach(btn => btn.classList.remove('active'));
     btnText.classList.add('active');
     textPanel.style.display = '';
@@ -428,15 +428,20 @@ function spawnLetter() {
         return;
     }
     
+    // For Custom Text mode, only spawn if there's no current letter falling
+    if (mode === 'custom' && customText) {
+        if (textIndex >= customText.length) return; // All letters completed
+        
+        // Check if there's already a letter for the current textIndex falling
+        const hasCurrentLetter = fallingLetters.some(obj => !obj.caught && obj.seq === textIndex);
+        if (hasCurrentLetter) return; // Don't spawn another letter
+    }
+    
     const colIdx = Math.floor(Math.random() * NUM_COLS);
     let letter = randomLetter();
-    // Only spawn valid letters in columns
-    while ((letter === '\n') || (mode === 'custom' && customText && textIndex < customText.length && letter === '')) {
-        textIndex++;
-        letter = randomLetter();
-        if (mode !== 'custom' || textIndex >= (customText ? customText.length : 0)) break;
-    }
-    if (mode === 'custom' && customText && textIndex >= customText.length) return;
+    
+    // Skip invalid characters
+    if (letter === '\n' || letter === '') return;
     const letterDiv = document.createElement('div');
     letterDiv.className = 'falling-letter';
     // Show special characters visually
@@ -463,7 +468,7 @@ function spawnLetter() {
         caught: false,
         seq: mode === 'custom' ? textIndex : undefined
     });
-    if (mode === 'custom') textIndex++;
+    // Don't increment textIndex here - only when letter is caught
 }
 
 function spawnKeyboardLetter() {
@@ -645,6 +650,8 @@ document.addEventListener('keydown', (e) => {
             score++;
             updateAllScoreDisplays();
             if (mode === 'custom' && customText) {
+                // Increment textIndex to move to next letter
+                textIndex++;
                 // Show progress
                 let progress = '';
                 for (let j = 0; j < customText.length; j++) {
@@ -653,7 +660,7 @@ document.addEventListener('keydown', (e) => {
                     if (j < textIndex) {
                         // Already typed letters - green
                         progress += `<span style='color:#2ecc40;'>${displayChar}</span>`;
-                    } else if (j === textIndex) {
+                    } else if (j === textIndex && textIndex < customText.length) {
                         // Current letter to type - green highlight
                         progress += `<span style='color:#2ecc40; background-color: rgba(46, 204, 64, 0.3);'>${displayChar}</span>`;
                     } else {
@@ -664,7 +671,7 @@ document.addEventListener('keydown', (e) => {
                 textProgress.innerHTML = progress;
                 
                 // Check if all text is completed (win condition)
-                if (score >= customText.length) {
+                if (textIndex >= customText.length) {
                     showWinMessage();
                 }
             }
