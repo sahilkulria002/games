@@ -570,7 +570,7 @@ document.addEventListener('keydown', (e) => {
     // Arrow key controls (work even when game is not active)
     if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (FALL_SPEED < 10) {
+        if (FALL_SPEED < 20) {
             FALL_SPEED++;
             updateAllSpeedControls();
         }
