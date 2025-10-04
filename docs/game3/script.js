@@ -8,6 +8,11 @@ let displayTime = 2000; // 2 seconds default
 let score = 0;
 let level = 1;
 let startTime = 0;
+let skipCount = 0; // Track number of skips used
+
+// Game session tracking
+let completedWords = []; // Words that were completed successfully
+let skippedWords = []; // Words that were skipped
 
 // Word progression variables
 let currentWordLength = 3; // Will be updated from slider value
@@ -40,7 +45,6 @@ const displayTimeSlider = document.getElementById('display-time');
 const displayTimeValue = document.getElementById('display-time-value');
 const startingLengthSlider = document.getElementById('starting-length');
 const startingLengthValue = document.getElementById('starting-length-value');
-const newWordBtn = document.getElementById('new-word-btn');
 const startBtn = document.getElementById('start-btn');
 const placeholderBoxes = document.getElementById('placeholder-boxes');
 const scatteredLettersContainer = document.getElementById('scattered-letters');
@@ -53,6 +57,7 @@ const messageOverlay = document.getElementById('message-overlay');
 const messageTitle = document.getElementById('message-title');
 const messageText = document.getElementById('message-text');
 const nextWordBtn = document.getElementById('next-word-btn');
+const skipWordBtn = document.getElementById('skip-word-btn');
 const menuBtn = document.getElementById('menu-btn');
 
 // Custom text DOM elements
@@ -86,9 +91,9 @@ function init() {
 function setupEventListeners() {
     displayTimeSlider.addEventListener('input', updateDisplayTime);
     startingLengthSlider.addEventListener('input', updateStartingLength);
-    newWordBtn.addEventListener('click', generateNewWord);
     startBtn.addEventListener('click', startGame);
     nextWordBtn.addEventListener('click', nextWord);
+    skipWordBtn.addEventListener('click', skipWord);
     menuBtn.addEventListener('click', resetToMenu);
     
     // Custom text listeners
@@ -212,6 +217,38 @@ function startGame() {
     
     gameActive = true;
     startTime = Date.now();
+    skipCount = 0; // Reset skip count for new game
+    
+    // Reset game session tracking
+    completedWords = [];
+    skippedWords = [];
+    
+    // Show skip button during gameplay and update its text
+    skipWordBtn.style.display = 'inline-block';
+    updateSkipButtonText();
+    
+    // After display time, scatter letters
+    setTimeout(() => {
+        scatterLettersFromPlaceholders();
+    }, displayTime);
+    
+    updateTimer();
+}
+
+// Continue game without resetting skip count (used by animateToNextWord)
+function continueGame() {
+    if (!currentWord) {
+        generateNewWord();
+        return;
+    }
+    
+    gameActive = true;
+    startTime = Date.now();
+    
+    // Don't reset skip count when continuing
+    // Show skip button during gameplay and update its text
+    skipWordBtn.style.display = 'inline-block';
+    updateSkipButtonText();
     
     // After display time, scatter letters
     setTimeout(() => {
@@ -521,6 +558,9 @@ function completeWord() {
     gameActive = false;
     score += 10 * level; // More points for higher levels
     
+    // Track completed word
+    completedWords.push(currentWord);
+    
     // Increment words completed at current length
     wordsCompletedAtCurrentLength++;
     
@@ -638,7 +678,7 @@ function animateToNextWord() {
             
             // Auto-start the next word after fade in completes
             setTimeout(() => {
-                startGame();
+                continueGame();
             }, letterBoxes.length * 80 + 500);
         }, 200);
     }, letterBoxes.length * 60 + 400);
@@ -715,12 +755,42 @@ function nextWord() {
     updateUI();
 }
 
+// Skip current word (don't increase level)
+function skipWord() {
+    if (!gameActive) return;
+    
+    // Track skipped word
+    skippedWords.push(currentWord);
+    
+    skipCount++;
+    
+    // Check if skip limit reached
+    if (skipCount >= 3) {
+        gameActive = false;
+        showGameOverSummary();
+        skipWordBtn.style.display = 'none';
+        return;
+    }
+    
+    // Update skip button text immediately after incrementing
+    updateSkipButtonText();
+    
+    hideMessage();
+    // Don't increase level since word was skipped
+    // Use the same animation flow as normal word completion
+    animateToNextWord();
+}
+
 // Reset to menu
 function resetToMenu() {
     hideMessage();
     gameActive = false;
     score = 0;
     level = 1;
+    skipCount = 0; // Reset skip count
+    
+    // Hide skip button when not in game
+    skipWordBtn.style.display = 'none';
     
     // Reset word progression variables
     currentWordLength = 3;
@@ -747,6 +817,68 @@ function updateUI() {
     levelEl.textContent = level;
     progressText.textContent = typedLetters.join('');
     typedLettersEl.textContent = typedLetters.join(' ');
+    // Skip button text is updated separately to avoid flickering during animations
+}
+
+// Update skip button text
+function updateSkipButtonText() {
+    const remainingSkips = 3 - skipCount;
+    if (skipCount < 3) {
+        skipWordBtn.textContent = `Skip Word (${remainingSkips} left)`;
+    } else {
+        skipWordBtn.textContent = 'Skip Word';
+    }
+}
+
+// Show game over summary with word performance
+function showGameOverSummary() {
+    const messageContent = document.getElementById('message-content');
+    
+    // Create custom game over content
+    const totalWords = completedWords.length + skippedWords.length;
+    
+    let wordListHtml = '';
+    if (totalWords > 0) {
+        // Show completed words in green
+        completedWords.forEach(word => {
+            wordListHtml += `<span class="completed-word">${word}</span> `;
+        });
+        
+        // Show skipped words in white/gray
+        skippedWords.forEach(word => {
+            wordListHtml += `<span class="skipped-word">${word}</span> `;
+        });
+    }
+    
+    messageContent.innerHTML = `
+        <h2>Game Over!</h2>
+        <p>You used all 3 skips. Final Score: <strong>${score}</strong></p>
+        <div class="game-summary">
+            <p><strong>Performance Summary:</strong></p>
+            <p>✓ Completed: ${completedWords.length} words</p>
+            <p>⏭ Skipped: ${skippedWords.length} words</p>
+            ${wordListHtml ? `<div class="word-list">${wordListHtml}</div>` : ''}
+        </div>
+        <button id="restart-btn">Restart Game</button>
+        <button id="menu-btn">Main Menu</button>
+    `;
+    
+    // Show the overlay
+    messageOverlay.classList.add('show');
+    
+    // Add event listeners for both buttons
+    const restartBtn = document.getElementById('restart-btn');
+    const menuBtn = document.getElementById('menu-btn');
+    
+    restartBtn.addEventListener('click', restartGame);
+    menuBtn.addEventListener('click', resetToMenu);
+}
+
+// Restart game with current settings
+function restartGame() {
+    hideMessage();
+    // Don't reset settings, just restart the game
+    startGame();
 }
 
 // Custom text functions

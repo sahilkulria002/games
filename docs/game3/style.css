@@ -253,6 +253,58 @@ button:active {
     transform: translateY(0);
 }
 
+.skip-btn {
+    background: linear-gradient(45deg, #ff9800, #f57c00);
+    color: white;
+    display: none; /* Hidden by default */
+}
+
+.skip-btn:hover {
+    background: linear-gradient(45deg, #f57c00, #ef6c00);
+}
+
+/* Game Over Summary Styles */
+.game-summary {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.game-summary p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.word-list {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    line-height: 1.6;
+}
+
+.completed-word {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    background: #4caf50;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.skipped-word {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    background: #757575;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
 /* Game Area */
 .game-area {
     flex: 1;
