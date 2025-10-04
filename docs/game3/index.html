@@ -8,6 +8,30 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- Left Control Panel -->
+        <div class="left-panel" id="left-panel">
+            <div class="panel-header">
+                <h3>Game Settings</h3>
+                <button class="panel-toggle" id="panel-toggle">◀</button>
+            </div>
+            
+            <div class="panel-content">
+                <div class="setting-section">
+                    <h4>Words Per Length</h4>
+                    <p class="setting-description">Set how many words to play for each letter count:</p>
+                    
+                    <div class="words-per-length-controls" id="words-per-length-controls">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    
+                    <div class="panel-actions">
+                        <button id="reset-to-defaults" class="panel-btn">Reset to Defaults</button>
+                        <button id="apply-settings" class="panel-btn primary">Apply Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Header Controls -->
         <div class="header-controls">
             <h1>Memory Table</h1>
@@ -17,6 +41,12 @@
                     <input type="range" id="display-time" min="0.1" max="10" value="2" step="0.1">
                     <span id="display-time-value">2.0s</span>
                 </div>
+                <div class="control-group">
+                    <label for="starting-length">Start Length:</label>
+                    <input type="range" id="starting-length" min="3" max="8" value="3" step="1">
+                    <span id="starting-length-value">3 letters</span>
+                </div>
+                <button id="custom-text-btn">Custom Text</button>
                 <button id="new-word-btn">New Word</button>
                 <button id="start-btn">Start Game</button>
             </div>
@@ -63,6 +93,21 @@
                 <button id="next-word-btn">Next Word</button>
                 <button id="menu-btn">Main Menu</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Custom Text Input Modal -->
+    <div class="text-input-overlay" id="text-input-overlay">
+        <div class="text-input-content">
+            <h2>Add Your Custom Text</h2>
+            <p>Paste any text (story, article, etc.) and we'll extract words for the game:</p>
+            <textarea id="custom-text-area" placeholder="Paste your text here... (minimum 200 words recommended for best experience)"></textarea>
+            <div class="text-input-controls">
+                <button id="process-text-btn">Process Text</button>
+                <button id="use-default-btn">Use Default Words</button>
+                <button id="cancel-text-btn">Cancel</button>
+            </div>
+            <div id="text-stats" class="text-stats"></div>
         </div>
     </div>
 

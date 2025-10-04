@@ -1,0 +1,2 @@
+1. two or multiple words at a time
+2. show a sentense, let them scatter and only one word letter will remain on the screen, we have to guess the word and type

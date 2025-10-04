@@ -10,9 +10,18 @@ let level = 1;
 let startTime = 0;
 
 // Word progression variables
-let currentWordLength = 3; // Start with 3-letter words
+let currentWordLength = 3; // Will be updated from slider value
 let wordsCompletedAtCurrentLength = 0; // Track how many words completed at current length
 let usedWordsAtCurrentLength = []; // Track which words we've used at current length
+
+// Custom text variables
+let customWordsByLength = null; // Will store words extracted from custom text
+let usingCustomText = false; // Flag to track if we're using custom text
+
+// Words per length settings
+let wordsPerLength = {
+    3: 5, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5, 9: 5, 10: 5
+}; // Default 5 words for each length
 
 // Word lists organized by length
 const wordsByLength = {
@@ -29,6 +38,8 @@ const wordsByLength = {
 // DOM elements
 const displayTimeSlider = document.getElementById('display-time');
 const displayTimeValue = document.getElementById('display-time-value');
+const startingLengthSlider = document.getElementById('starting-length');
+const startingLengthValue = document.getElementById('starting-length-value');
 const newWordBtn = document.getElementById('new-word-btn');
 const startBtn = document.getElementById('start-btn');
 const placeholderBoxes = document.getElementById('placeholder-boxes');
@@ -44,10 +55,29 @@ const messageText = document.getElementById('message-text');
 const nextWordBtn = document.getElementById('next-word-btn');
 const menuBtn = document.getElementById('menu-btn');
 
+// Custom text DOM elements
+const customTextBtn = document.getElementById('custom-text-btn');
+const textInputOverlay = document.getElementById('text-input-overlay');
+const customTextArea = document.getElementById('custom-text-area');
+const processTextBtn = document.getElementById('process-text-btn');
+const useDefaultBtn = document.getElementById('use-default-btn');
+const cancelTextBtn = document.getElementById('cancel-text-btn');
+const textStats = document.getElementById('text-stats');
+
+// Left panel DOM elements
+const leftPanel = document.getElementById('left-panel');
+const panelToggle = document.getElementById('panel-toggle');
+const wordsPerLengthControls = document.getElementById('words-per-length-controls');
+const resetToDefaultsBtn = document.getElementById('reset-to-defaults');
+const applySettingsBtn = document.getElementById('apply-settings');
+const gameContainer = document.querySelector('.game-container');
+
 // Initialize the game
 function init() {
     setupEventListeners();
     updateDisplayTime();
+    initStartingLength();
+    initializePanel();
     generateNewWord();
     updateUI();
 }
@@ -55,10 +85,22 @@ function init() {
 // Setup event listeners
 function setupEventListeners() {
     displayTimeSlider.addEventListener('input', updateDisplayTime);
+    startingLengthSlider.addEventListener('input', updateStartingLength);
     newWordBtn.addEventListener('click', generateNewWord);
     startBtn.addEventListener('click', startGame);
     nextWordBtn.addEventListener('click', nextWord);
     menuBtn.addEventListener('click', resetToMenu);
+    
+    // Custom text listeners
+    customTextBtn.addEventListener('click', showTextInput);
+    processTextBtn.addEventListener('click', processCustomText);
+    useDefaultBtn.addEventListener('click', useDefaultWords);
+    cancelTextBtn.addEventListener('click', hideTextInput);
+    
+    // Panel listeners
+    panelToggle.addEventListener('click', togglePanel);
+    resetToDefaultsBtn.addEventListener('click', resetWordsPerLength);
+    applySettingsBtn.addEventListener('click', applyWordsPerLengthSettings);
     
     // Keyboard input
     document.addEventListener('keydown', handleKeyPress);
@@ -77,19 +119,46 @@ function updateDisplayTime() {
     }
 }
 
+// Update starting length from slider
+function updateStartingLength() {
+    const lengthValue = parseInt(startingLengthSlider.value);
+    startingLengthValue.textContent = lengthValue + ' letters';
+    
+    // Reset word progression to use new starting length
+    resetWordProgression();
+    generateNewWord();
+    updateUI();
+}
+
+// Initialize starting length display (without triggering game reset)
+function initStartingLength() {
+    const lengthValue = parseInt(startingLengthSlider.value);
+    startingLengthValue.textContent = lengthValue + ' letters';
+    currentWordLength = lengthValue;
+}
+
 // Generate a new word with 4-words-per-length progression
 function generateNewWord() {
+    // Choose word source (custom text or default words)
+    const wordSource = usingCustomText ? customWordsByLength : wordsByLength;
+    
     // Get available words for current length
-    const wordList = wordsByLength[currentWordLength];
+    const wordList = wordSource[currentWordLength];
     
-    // Get unused words (words we haven't used yet at this length)
-    const availableWords = wordList.filter(word => !usedWordsAtCurrentLength.includes(word));
-    
-    // If no available words left, we shouldn't reach here, but as fallback use any word
-    const wordsToChooseFrom = availableWords.length > 0 ? availableWords : wordList;
-    
-    // Pick a random word from available words
-    currentWord = wordsToChooseFrom[Math.floor(Math.random() * wordsToChooseFrom.length)];
+    // If no words available for this length, fall back to default words
+    if (!wordList || wordList.length === 0) {
+        const fallbackList = wordsByLength[currentWordLength];
+        currentWord = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+    } else {
+        // Get unused words (words we haven't used yet at this length)
+        const availableWords = wordList.filter(word => !usedWordsAtCurrentLength.includes(word));
+        
+        // If no available words left, reset and use all words again
+        const wordsToChooseFrom = availableWords.length > 0 ? availableWords : wordList;
+        
+        // Pick a random word from available words
+        currentWord = wordsToChooseFrom[Math.floor(Math.random() * wordsToChooseFrom.length)];
+    }
     
     // Add to used words list
     if (!usedWordsAtCurrentLength.includes(currentWord)) {
@@ -230,7 +299,7 @@ function isPositionOverlapping(newPos, existingPositions) {
 
 // Handle keyboard input
 function handleKeyPress(e) {
-    if (!gameActive || scatteredLetters.length === 0) return;
+    if (!gameActive) return;
     
     const key = e.key.toUpperCase();
     
@@ -240,8 +309,8 @@ function handleKeyPress(e) {
         return;
     }
     
-    // Check if it's a valid letter
-    if (key.length === 1 && key.match(/[A-Z]/)) {
+    // Check if it's a valid letter and we have scattered letters available
+    if (key.length === 1 && key.match(/[A-Z]/) && scatteredLetters.length > 0) {
         handleLetterInput(key);
         e.preventDefault();
     }
@@ -462,8 +531,8 @@ function completeWord() {
     setTimeout(() => {
         level++;
         
-        // Check if we need to increase word length (after 4 words)
-        if (wordsCompletedAtCurrentLength >= 4) {
+        // Check if we need to increase word length (based on user settings)
+        if (wordsCompletedAtCurrentLength >= wordsPerLength[currentWordLength]) {
             // Move to next word length
             currentWordLength++;
             wordsCompletedAtCurrentLength = 0;
@@ -534,9 +603,10 @@ function animateToNextWord() {
             setTimeout(() => {
                 box.textContent = '';
                 box.classList.remove('filled', 'error');
-                box.style.background = 'rgba(255, 255, 255, 0.1)';
-                box.style.borderColor = 'rgba(255, 255, 255, 0.6)';
-                box.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+                // Remove inline styles to let CSS classes work
+                box.style.background = '';
+                box.style.borderColor = '';
+                box.style.boxShadow = '';
             }, 200); // Clear styling halfway through fade
         }, index * 60);
     });
@@ -549,10 +619,10 @@ function animateToNextWord() {
         // Clean fade in with gentle scale
         setTimeout(() => {
             letterBoxes.forEach((box, index) => {
-                // Reset styling first
-                box.style.background = 'rgba(76, 175, 80, 0.8)';
-                box.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
-                box.style.borderColor = 'rgba(255, 255, 255, 0.6)';
+                // Reset styling first - remove inline styles to let CSS classes work
+                box.style.background = '';
+                box.style.boxShadow = '';
+                box.style.borderColor = '';
                 
                 // Start invisible and slightly smaller
                 box.style.transition = 'none';
@@ -677,6 +747,228 @@ function updateUI() {
     levelEl.textContent = level;
     progressText.textContent = typedLetters.join('');
     typedLettersEl.textContent = typedLetters.join(' ');
+}
+
+// Custom text functions
+function showTextInput() {
+    textInputOverlay.classList.add('show');
+    customTextArea.focus();
+}
+
+function hideTextInput() {
+    textInputOverlay.classList.remove('show');
+    textStats.classList.remove('show');
+    customTextArea.value = '';
+}
+
+function processCustomText() {
+    const inputText = customTextArea.value.trim();
+    
+    if (inputText.length < 50) {
+        alert('Please enter at least 50 characters of text for better word variety.');
+        return;
+    }
+    
+    // Extract and process words
+    const extractedWords = extractWordsFromText(inputText);
+    
+    if (Object.keys(extractedWords).length === 0) {
+        alert('Could not extract enough valid words from the text. Please try a different text.');
+        return;
+    }
+    
+    // Set the custom words
+    customWordsByLength = extractedWords;
+    usingCustomText = true;
+    
+    // Show statistics
+    showTextStatistics(extractedWords);
+    
+    // Reset game progression
+    resetWordProgression();
+    
+    // Generate new word and close modal
+    setTimeout(() => {
+        hideTextInput();
+        generateNewWord();
+        updateUI();
+    }, 2000);
+}
+
+function useDefaultWords() {
+    usingCustomText = false;
+    customWordsByLength = null;
+    resetWordProgression();
+    hideTextInput();
+    generateNewWord();
+    updateUI();
+}
+
+function extractWordsFromText(text) {
+    // Clean and split text into words
+    const words = text
+        .toUpperCase()
+        .replace(/[^A-Z\s]/g, ' ') // Replace non-letters with spaces
+        .split(/\s+/) // Split on whitespace
+        .filter(word => word.length >= 3 && word.length <= 10) // Only words 3-10 letters
+        .filter(word => /^[A-Z]+$/.test(word)); // Only pure letter words
+    
+    // Group words by length
+    const wordsByLength = {};
+    for (let length = 3; length <= 10; length++) {
+        wordsByLength[length] = [];
+    }
+    
+    // Add words to appropriate length groups (avoid duplicates)
+    words.forEach(word => {
+        const length = word.length;
+        if (!wordsByLength[length].includes(word)) {
+            wordsByLength[length].push(word);
+        }
+    });
+    
+    // Remove empty length categories
+    Object.keys(wordsByLength).forEach(length => {
+        if (wordsByLength[length].length === 0) {
+            delete wordsByLength[length];
+        }
+    });
+    
+    return wordsByLength;
+}
+
+function showTextStatistics(extractedWords) {
+    let statsHTML = '<strong>Words extracted:</strong><br>';
+    let totalWords = 0;
+    
+    for (let length = 3; length <= 10; length++) {
+        if (extractedWords[length] && extractedWords[length].length > 0) {
+            const count = extractedWords[length].length;
+            totalWords += count;
+            statsHTML += `${length} letters: ${count} words<br>`;
+        }
+    }
+    
+    statsHTML += `<br><strong>Total: ${totalWords} unique words</strong>`;
+    statsHTML += '<br><em>Starting game with your custom text...</em>';
+    
+    textStats.innerHTML = statsHTML;
+    textStats.classList.add('show');
+}
+
+function resetWordProgression() {
+    currentWordLength = parseInt(startingLengthSlider.value);
+    wordsCompletedAtCurrentLength = 0;
+    usedWordsAtCurrentLength = [];
+}
+
+// Panel functions
+function togglePanel() {
+    const isOpen = leftPanel.classList.contains('open');
+    
+    if (isOpen) {
+        leftPanel.classList.remove('open');
+        gameContainer.classList.remove('panel-open');
+        panelToggle.textContent = '▶';
+    } else {
+        leftPanel.classList.add('open');
+        gameContainer.classList.add('panel-open');
+        panelToggle.textContent = '◀';
+    }
+}
+
+function initializePanel() {
+    // Create controls for each word length
+    wordsPerLengthControls.innerHTML = '';
+    
+    for (let length = 3; length <= 10; length++) {
+        const controlDiv = document.createElement('div');
+        controlDiv.className = 'word-length-control';
+        
+        const label = document.createElement('span');
+        label.className = 'word-length-label';
+        label.textContent = `${length} letters:`;
+        
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.className = 'word-count-input';
+        input.value = wordsPerLength[length];
+        input.min = 1;
+        input.max = 50;
+        input.dataset.length = length;
+        
+        // Update the setting when input changes
+        input.addEventListener('input', function() {
+            const lengthValue = parseInt(this.dataset.length);
+            const countValue = Math.max(1, Math.min(50, parseInt(this.value) || 1));
+            this.value = countValue;
+            wordsPerLength[lengthValue] = countValue;
+        });
+        
+        controlDiv.appendChild(label);
+        controlDiv.appendChild(input);
+        wordsPerLengthControls.appendChild(controlDiv);
+    }
+}
+
+function resetWordsPerLength() {
+    // Reset all values to 5
+    for (let length = 3; length <= 10; length++) {
+        wordsPerLength[length] = 5;
+    }
+    
+    // Update input values
+    const inputs = wordsPerLengthControls.querySelectorAll('.word-count-input');
+    inputs.forEach(input => {
+        input.value = 5;
+    });
+    
+    // Show feedback
+    showPanelFeedback('Settings reset to defaults (5 words each)', 'info');
+}
+
+function applyWordsPerLengthSettings() {
+    // Reset the game progression with new settings
+    resetWordProgression();
+    generateNewWord();
+    updateUI();
+    
+    // Show feedback
+    const totalWords = Object.values(wordsPerLength).reduce((sum, count) => sum + count, 0);
+    showPanelFeedback(`Settings applied! Total: ${totalWords} words`, 'success');
+}
+
+function showPanelFeedback(message, type = 'info') {
+    // Create feedback element
+    const feedback = document.createElement('div');
+    feedback.className = `panel-feedback ${type}`;
+    feedback.textContent = message;
+    feedback.style.cssText = `
+        position: absolute;
+        top: 70px;
+        left: 20px;
+        right: 20px;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        z-index: 600;
+        transition: all 0.3s ease;
+        ${type === 'success' ? 'background: rgba(76, 175, 80, 0.9); color: white;' : 
+          type === 'info' ? 'background: rgba(33, 150, 243, 0.9); color: white;' : 
+          'background: rgba(255, 152, 0, 0.9); color: white;'}
+    `;
+    
+    leftPanel.appendChild(feedback);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.style.opacity = '0';
+            feedback.style.transform = 'translateY(-20px)';
+            setTimeout(() => feedback.remove(), 300);
+        }
+    }, 3000);
 }
 
 // Initialize the game when page loads
