@@ -18,7 +18,7 @@ let score = 0;
 let level = 1;
 let startTime = 0;
 let skipCount = 0; // Track number of skips used
-let gameMode = 'single'; // 'single', 'double', 'triple', or 'quad'
+let gameMode = 'mix'; // 'mix', 'single', 'double', 'triple', or 'quad'
 let activeWord = 1; // Which word is currently being typed (1, 2, 3, or 4)
 let word1Completed = false; // Track if first word is completed
 let word2Completed = false; // Track if second word is completed
@@ -37,6 +37,20 @@ let usedWordsAtCurrentLength = []; // Track which words we've used at current le
 // Custom text variables
 let customWordsByLength = null; // Will store words extracted from custom text
 let usingCustomText = false; // Flag to track if we're using custom text
+
+// Mix mode progression variables
+let mixModeStage = 1; // Current stage in mix mode
+let mixModeWordsCompleted = 0; // Words completed in current stage
+let mixModeConfig = {
+    1: { words: 1, length: 3, wordsNeeded: 3 },  // Stage 1: 1 word, 3 letters, complete 3 words
+    2: { words: 1, length: 4, wordsNeeded: 3 },  // Stage 2: 1 word, 4 letters, complete 3 words
+    3: { words: 2, length: 4, wordsNeeded: 2 },  // Stage 3: 2 words, 4 letters, complete 2 sets
+    4: { words: 2, length: 5, wordsNeeded: 2 },  // Stage 4: 2 words, 5 letters, complete 2 sets
+    5: { words: 3, length: 5, wordsNeeded: 2 },  // Stage 5: 3 words, 5 letters, complete 2 sets
+    6: { words: 3, length: 6, wordsNeeded: 2 },  // Stage 6: 3 words, 6 letters, complete 2 sets
+    7: { words: 4, length: 6, wordsNeeded: 2 },  // Stage 7: 4 words, 6 letters, complete 2 sets
+    8: { words: 4, length: 7, wordsNeeded: 2 }   // Stage 8: 4 words, 7 letters, complete 2 sets
+};
 
 // Words per length settings
 let wordsPerLength = {
@@ -179,38 +193,81 @@ function updateGameMode() {
     gameMode = gameModeSelect.value;
     const modeHint = document.getElementById('mode-hint');
     
+    // Reset mix mode when changing modes
+    if (gameMode === 'mix') {
+        mixModeStage = 1;
+        mixModeWordsCompleted = 0;
+    }
+    
     // Hide all word containers first
     wordContainer2.style.display = 'none';
     wordContainer3.style.display = 'none';
     wordContainer4.style.display = 'none';
     
-    // Remove/add single-mode class based on game mode
-    if (gameMode === 'single') {
+    // Handle mix mode or regular modes
+    if (gameMode === 'mix') {
+        updateMixModeDisplay();
+        if (modeHint) modeHint.style.display = 'block';
+    } else if (gameMode === 'single') {
         wordContainer1.classList.add('single-mode');
         if (modeHint) modeHint.style.display = 'none';
     } else {
         wordContainer1.classList.remove('single-mode');
         if (modeHint) modeHint.style.display = 'block';
-    }
-    
-    // Show appropriate containers based on mode
-    if (gameMode === 'double') {
-        wordContainer2.style.display = 'block';
-    } else if (gameMode === 'triple') {
-        wordContainer2.style.display = 'block';
-        wordContainer3.style.display = 'block';
-    } else if (gameMode === 'quad') {
-        wordContainer2.style.display = 'block';
-        wordContainer3.style.display = 'block';
-        wordContainer4.style.display = 'block';
+        
+        // Show appropriate containers based on mode
+        if (gameMode === 'double') {
+            wordContainer2.style.display = 'block';
+        } else if (gameMode === 'triple') {
+            wordContainer2.style.display = 'block';
+            wordContainer3.style.display = 'block';
+        } else if (gameMode === 'quad') {
+            wordContainer2.style.display = 'block';
+            wordContainer3.style.display = 'block';
+            wordContainer4.style.display = 'block';
+        }
     }
     
     generateNewWord();
 }
 
+// Update display for mix mode based on current stage
+function updateMixModeDisplay() {
+    const config = mixModeConfig[mixModeStage];
+    if (!config) return;
+    
+    // Remove single-mode class
+    wordContainer1.classList.remove('single-mode');
+    
+    // Show containers based on current stage
+    if (config.words >= 2) {
+        wordContainer2.style.display = 'block';
+    }
+    if (config.words >= 3) {
+        wordContainer3.style.display = 'block';
+    }
+    if (config.words >= 4) {
+        wordContainer4.style.display = 'block';
+    }
+    
+    // If only 1 word, center it
+    if (config.words === 1) {
+        wordContainer1.classList.add('single-mode');
+    }
+    
+    // Update word length for this stage
+    currentWordLength = config.length;
+}
+
 // Set active word for typing in multi-word modes
 function setActiveWord(wordNumber) {
     if (gameMode === 'single') return;
+    
+    // Check if word number is valid for mix mode
+    if (gameMode === 'mix') {
+        const config = mixModeConfig[mixModeStage];
+        if (!config || wordNumber > config.words) return;
+    }
     
     activeWord = wordNumber;
     
@@ -267,18 +324,40 @@ function generateNewWord() {
     // Choose word source (custom text or default words)
     const wordSource = usingCustomText ? customWordsByLength : wordsByLength;
     
-    // Generate first word
-    generateSingleWord(wordSource, 1);
-    
-    // Generate additional words based on game mode
-    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
-        generateSingleWord(wordSource, 2);
-    }
-    if (gameMode === 'triple' || gameMode === 'quad') {
-        generateSingleWord(wordSource, 3);
-    }
-    if (gameMode === 'quad') {
-        generateSingleWord(wordSource, 4);
+    // Handle mix mode
+    if (gameMode === 'mix') {
+        const config = mixModeConfig[mixModeStage];
+        if (config) {
+            // Set the word length for this stage
+            currentWordLength = config.length;
+            
+            // Generate words based on current stage
+            generateSingleWord(wordSource, 1);
+            if (config.words >= 2) {
+                generateSingleWord(wordSource, 2);
+            }
+            if (config.words >= 3) {
+                generateSingleWord(wordSource, 3);
+            }
+            if (config.words >= 4) {
+                generateSingleWord(wordSource, 4);
+            }
+        }
+    } else {
+        // Regular modes
+        // Generate first word
+        generateSingleWord(wordSource, 1);
+        
+        // Generate additional words based on game mode
+        if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+            generateSingleWord(wordSource, 2);
+        }
+        if (gameMode === 'triple' || gameMode === 'quad') {
+            generateSingleWord(wordSource, 3);
+        }
+        if (gameMode === 'quad') {
+            generateSingleWord(wordSource, 4);
+        }
     }
     
     // Reset game state
@@ -294,14 +373,30 @@ function generateNewWord() {
     
     // Create placeholder boxes with letters initially
     createPlaceholderBoxesWithLetters();
-    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
-        createPlaceholderBoxesWithLetters2();
-    }
-    if (gameMode === 'triple' || gameMode === 'quad') {
-         createPlaceholderBoxesWithLetters3();
-    }
-    if (gameMode === 'quad') {
-        createPlaceholderBoxesWithLetters4();
+    
+    // Handle mix mode or regular modes
+    if (gameMode === 'mix') {
+        const config = mixModeConfig[mixModeStage];
+        if (config && config.words >= 2) {
+            createPlaceholderBoxesWithLetters2();
+        }
+        if (config && config.words >= 3) {
+            createPlaceholderBoxesWithLetters3();
+        }
+        if (config && config.words >= 4) {
+            createPlaceholderBoxesWithLetters4();
+        }
+    } else {
+        // Regular modes
+        if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+            createPlaceholderBoxesWithLetters2();
+        }
+        if (gameMode === 'triple' || gameMode === 'quad') {
+             createPlaceholderBoxesWithLetters3();
+        }
+        if (gameMode === 'quad') {
+            createPlaceholderBoxesWithLetters4();
+        }
     }
     
     // Clear scattered letters
@@ -493,16 +588,32 @@ function scatterLettersFromPlaceholders() {
     delayCounter += currentWord.length;
     
     // Scatter letters from additional words based on game mode
-    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
-        scatterWordLetters(currentWord2, letterBoxes2, containerRect, usedPositions, delayCounter, 2);
-        delayCounter += currentWord2.length;
-    }
-    if (gameMode === 'triple' || gameMode === 'quad') {
-        scatterWordLetters(currentWord3, letterBoxes3, containerRect, usedPositions, delayCounter, 3);
-        delayCounter += currentWord3.length;
-    }
-    if (gameMode === 'quad') {
-        scatterWordLetters(currentWord4, letterBoxes4, containerRect, usedPositions, delayCounter, 4);
+    if (gameMode === 'mix') {
+        const config = mixModeConfig[mixModeStage];
+        if (config && config.words >= 2) {
+            scatterWordLetters(currentWord2, letterBoxes2, containerRect, usedPositions, delayCounter, 2);
+            delayCounter += currentWord2.length;
+        }
+        if (config && config.words >= 3) {
+            scatterWordLetters(currentWord3, letterBoxes3, containerRect, usedPositions, delayCounter, 3);
+            delayCounter += currentWord3.length;
+        }
+        if (config && config.words >= 4) {
+            scatterWordLetters(currentWord4, letterBoxes4, containerRect, usedPositions, delayCounter, 4);
+        }
+    } else {
+        // Regular modes
+        if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+            scatterWordLetters(currentWord2, letterBoxes2, containerRect, usedPositions, delayCounter, 2);
+            delayCounter += currentWord2.length;
+        }
+        if (gameMode === 'triple' || gameMode === 'quad') {
+            scatterWordLetters(currentWord3, letterBoxes3, containerRect, usedPositions, delayCounter, 3);
+            delayCounter += currentWord3.length;
+        }
+        if (gameMode === 'quad') {
+            scatterWordLetters(currentWord4, letterBoxes4, containerRect, usedPositions, delayCounter, 4);
+        }
     }
 }
 
@@ -585,22 +696,35 @@ function handleKeyPress(e) {
     
     // Handle word switching shortcuts in multi-word modes
     if (gameMode !== 'single') {
-        if (key === '1') {
+        // Get max words for current mode/stage
+        let maxWords = 1;
+        if (gameMode === 'mix') {
+            const config = mixModeConfig[mixModeStage];
+            maxWords = config ? config.words : 1;
+        } else if (gameMode === 'double') {
+            maxWords = 2;
+        } else if (gameMode === 'triple') {
+            maxWords = 3;
+        } else if (gameMode === 'quad') {
+            maxWords = 4;
+        }
+        
+        if (key === '1' && maxWords >= 1) {
             setActiveWord(1);
             e.preventDefault();
             return;
         }
-        if (key === '2' && (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad')) {
+        if (key === '2' && maxWords >= 2) {
             setActiveWord(2);
             e.preventDefault();
             return;
         }
-        if (key === '3' && (gameMode === 'triple' || gameMode === 'quad')) {
+        if (key === '3' && maxWords >= 3) {
             setActiveWord(3);
             e.preventDefault();
             return;
         }
-        if (key === '4' && gameMode === 'quad') {
+        if (key === '4' && maxWords >= 4) {
             setActiveWord(4);
             e.preventDefault();
             return;
@@ -608,13 +732,11 @@ function handleKeyPress(e) {
         
         // Arrow key navigation
         if (key === 'ArrowUp') {
-            const maxWords = gameMode === 'quad' ? 4 : gameMode === 'triple' ? 3 : 2;
             setActiveWord(activeWord > 1 ? activeWord - 1 : maxWords);
             e.preventDefault();
             return;
         }
         if (key === 'ArrowDown') {
-            const maxWords = gameMode === 'quad' ? 4 : gameMode === 'triple' ? 3 : 2;
             setActiveWord(activeWord < maxWords ? activeWord + 1 : 1);
             e.preventDefault();
             return;
@@ -829,7 +951,34 @@ function handleCorrectLetter(letter, wordNumber = 1) {
 
 // Check if all required words are completed
 function checkAllWordsCompleted() {
-    if (gameMode === 'single') {
+    if (gameMode === 'mix') {
+        // Mix mode - check based on current stage
+        const config = mixModeConfig[mixModeStage];
+        if (!config) return;
+        
+        let allCompleted = word1Completed;
+        if (config.words >= 2) allCompleted = allCompleted && word2Completed;
+        if (config.words >= 3) allCompleted = allCompleted && word3Completed;
+        if (config.words >= 4) allCompleted = allCompleted && word4Completed;
+        
+        if (allCompleted) {
+            mixModeWordsCompleted++;
+            if (mixModeWordsCompleted >= config.wordsNeeded) {
+                // Move to next stage
+                setTimeout(() => {
+                    advanceMixModeStage();
+                }, 500);
+            } else {
+                // Continue with same stage
+                setTimeout(() => {
+                    completeWord();
+                }, 500);
+            }
+        } else {
+            // Handle automatic word switching for current stage
+            handleMixModeWordSwitching(config);
+        }
+    } else if (gameMode === 'single') {
         // Single word mode - complete when word1 is done
         if (word1Completed) {
             setTimeout(() => {
@@ -893,6 +1042,67 @@ function checkAllWordsCompleted() {
             }
         }
     }
+}
+
+// Handle word switching in mix mode
+function handleMixModeWordSwitching(config) {
+    if (config.words === 1) return; // Single word, no switching needed
+    
+    // Find next incomplete word and switch to it
+    const completedWords = [word1Completed, word2Completed, word3Completed, word4Completed];
+    const nextIncomplete = completedWords.slice(0, config.words).findIndex(completed => !completed) + 1;
+    if (nextIncomplete > 0 && nextIncomplete !== activeWord) {
+        setTimeout(() => {
+            setActiveWord(nextIncomplete);
+        }, 100);
+    }
+}
+
+// Advance to next stage in mix mode
+function advanceMixModeStage() {
+    mixModeStage++;
+    mixModeWordsCompleted = 0;
+    
+    // Check if we've completed all stages
+    if (mixModeStage > Object.keys(mixModeConfig).length) {
+        // Completed all stages! Show victory message
+        showMixModeVictory();
+        return;
+    }
+    
+    // Update display for new stage
+    updateMixModeDisplay();
+    
+    // Generate new words for the new stage immediately
+    completeWord();
+}
+
+// Show mix mode victory
+function showMixModeVictory() {
+    const messageTitle = document.getElementById('message-title');
+    const messageText = document.getElementById('message-text');
+    const messageOverlay = document.getElementById('message-overlay');
+    
+    messageTitle.textContent = 'Mix Mode Completed!';
+    messageText.innerHTML = `
+        <div style="text-align: center; margin: 20px 0;">
+            <div style="font-size: 1.5em; color: #4CAF50; margin-bottom: 15px;">🎉 Congratulations! 🎉</div>
+            <div style="margin-bottom: 10px;">You've completed all ${Object.keys(mixModeConfig).length} stages!</div>
+            <div style="color: #888; margin-bottom: 20px;">
+                From single 3-letter words to four 7-letter words!
+            </div>
+            <div style="color: #4CAF50; font-weight: bold;">
+                Final Score: ${score}
+            </div>
+        </div>
+    `;
+    
+    messageOverlay.style.display = 'flex';
+    
+    // Reset mix mode
+    mixModeStage = 1;
+    mixModeWordsCompleted = 0;
+    gameActive = false;
 }
 
 // Move letter from scattered position to placeholder
@@ -1346,7 +1556,16 @@ function updateTimer() {
 // Update UI elements
 function updateUI() {
     scoreEl.textContent = score;
-    levelEl.textContent = level;
+    
+    // Show stage info for mix mode, level for others
+    if (gameMode === 'mix') {
+        const config = mixModeConfig[mixModeStage];
+        if (config) {
+            levelEl.textContent = `Stage ${mixModeStage} (${mixModeWordsCompleted}/${config.wordsNeeded})`;
+        }
+    } else {
+        levelEl.textContent = level;
+    }
     
     // Update progress for word 1
     const currentProgressText = document.getElementById('progress-text');
