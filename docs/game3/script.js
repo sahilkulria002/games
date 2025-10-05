@@ -1,17 +1,24 @@
 // Game state variables
 let currentWord = '';
+let currentWord2 = ''; // Second word for two-words mode
 let letterBoxes = [];
+let letterBoxes2 = []; // Second set of boxes for two-words mode
 let scatteredLetters = [];
 let typedLetters = [];
+let typedLetters2 = []; // Typed letters for second word
 let gameActive = false;
 let displayTime = 2000; // 2 seconds default
 let score = 0;
 let level = 1;
 let startTime = 0;
 let skipCount = 0; // Track number of skips used
+let gameMode = 'single'; // 'single' or 'double'
+let activeWord = 1; // Which word is currently being typed (1 or 2)
+let word1Completed = false; // Track if first word is completed
+let word2Completed = false; // Track if second word is completed
 
 // Game session tracking
-let completedWords = []; // Words that were completed successfully
+let completedWords = []; // Words that were completed successfully  
 let skippedWords = []; // Words that were skipped
 
 // Word progression variables
@@ -45,11 +52,19 @@ const displayTimeSlider = document.getElementById('display-time');
 const displayTimeValue = document.getElementById('display-time-value');
 const startingLengthSlider = document.getElementById('starting-length');
 const startingLengthValue = document.getElementById('starting-length-value');
+const gameModeSelect = document.getElementById('game-mode');
 const startBtn = document.getElementById('start-btn');
 const placeholderBoxes = document.getElementById('placeholder-boxes');
+const placeholderBoxes2 = document.getElementById('placeholder-boxes-2');
+const wordContainer1 = document.getElementById('word-container-1');
+const wordContainer2 = document.getElementById('word-container-2');
+const inputSection1 = document.getElementById('input-section-1');
+const inputSection2 = document.getElementById('input-section-2');
 const scatteredLettersContainer = document.getElementById('scattered-letters');
 const typedLettersEl = document.getElementById('typed-letters');
+const typedLettersEl2 = document.getElementById('typed-letters-2');
 const progressText = document.getElementById('progress-text');
+const progressText2 = document.getElementById('progress-text-2');
 const scoreEl = document.getElementById('score');
 const levelEl = document.getElementById('level');
 const timerEl = document.getElementById('timer');
@@ -91,6 +106,7 @@ function init() {
 function setupEventListeners() {
     displayTimeSlider.addEventListener('input', updateDisplayTime);
     startingLengthSlider.addEventListener('input', updateStartingLength);
+    gameModeSelect.addEventListener('change', updateGameMode);
     startBtn.addEventListener('click', startGame);
     nextWordBtn.addEventListener('click', nextWord);
     skipWordBtn.addEventListener('click', skipWord);
@@ -106,6 +122,10 @@ function setupEventListeners() {
     panelToggle.addEventListener('click', togglePanel);
     resetToDefaultsBtn.addEventListener('click', resetWordsPerLength);
     applySettingsBtn.addEventListener('click', applyWordsPerLengthSettings);
+    
+    // Word container click listeners for two-words mode
+    wordContainer1.addEventListener('click', () => setActiveWord(1));
+    wordContainer2.addEventListener('click', () => setActiveWord(2));
     
     // Keyboard input
     document.addEventListener('keydown', handleKeyPress);
@@ -135,6 +155,58 @@ function updateStartingLength() {
     updateUI();
 }
 
+// Update game mode
+function updateGameMode() {
+    gameMode = gameModeSelect.value;
+    const modeHint = document.getElementById('mode-hint');
+    
+    if (gameMode === 'double') {
+        // Show second word containers
+        wordContainer2.style.display = 'block';
+        if (modeHint) modeHint.style.display = 'block';
+    } else {
+        // Hide second word containers
+        wordContainer2.style.display = 'none';
+        if (modeHint) modeHint.style.display = 'none';
+    }
+    
+    generateNewWord();
+}
+
+// Set active word for typing in two-words mode
+function setActiveWord(wordNumber) {
+    if (gameMode !== 'double') return;
+    
+    activeWord = wordNumber;
+    
+    // Visual feedback - highlight active word container
+    wordContainer1.classList.toggle('active-word', wordNumber === 1);
+    wordContainer2.classList.toggle('active-word', wordNumber === 2);
+    
+    // Update input feedback to show which word is active
+    const feedback1 = document.getElementById('input-feedback');
+    const feedback2 = document.getElementById('input-feedback-2');
+    
+    if (gameMode === 'double') {
+        if (wordNumber === 1) {
+            feedback1.innerHTML = 'Word 1 (Active)';
+            feedback2.innerHTML = 'Word 2';
+        } else {
+            feedback1.innerHTML = 'Word 1';
+            feedback2.innerHTML = 'Word 2 (Active)';
+        }
+    } else {
+        feedback1.innerHTML = '';
+        feedback2.innerHTML = '';
+    }
+    
+    // Re-get the progress text elements since we just changed the HTML
+    // Note: These will be used in the next updateUI() call
+    
+    // Update UI to refresh progress display
+    updateUI();
+}
+
 // Initialize starting length display (without triggering game reset)
 function initStartingLength() {
     const lengthValue = parseInt(startingLengthSlider.value);
@@ -147,13 +219,44 @@ function generateNewWord() {
     // Choose word source (custom text or default words)
     const wordSource = usingCustomText ? customWordsByLength : wordsByLength;
     
+    // Generate first word
+    generateSingleWord(wordSource, 1);
+    
+    // Generate second word if in double mode
+    if (gameMode === 'double') {
+        generateSingleWord(wordSource, 2);
+    }
+    
+    // Reset game state
+    typedLetters = [];
+    typedLetters2 = [];
+    word1Completed = false;
+    word2Completed = false;
+    gameActive = false;
+    
+    // Create placeholder boxes with letters initially
+    createPlaceholderBoxesWithLetters();
+    if (gameMode === 'double') {
+        createPlaceholderBoxesWithLetters2();
+    }
+    
+    // Clear scattered letters
+    scatteredLettersContainer.innerHTML = '';
+    scatteredLetters = [];
+    
+    updateUI();
+}
+
+// Generate a single word for the specified word number (1 or 2)
+function generateSingleWord(wordSource, wordNumber) {
     // Get available words for current length
     const wordList = wordSource[currentWordLength];
+    let selectedWord;
     
     // If no words available for this length, fall back to default words
     if (!wordList || wordList.length === 0) {
         const fallbackList = wordsByLength[currentWordLength];
-        currentWord = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+        selectedWord = fallbackList[Math.floor(Math.random() * fallbackList.length)];
     } else {
         // Get unused words (words we haven't used yet at this length)
         const availableWords = wordList.filter(word => !usedWordsAtCurrentLength.includes(word));
@@ -162,26 +265,20 @@ function generateNewWord() {
         const wordsToChooseFrom = availableWords.length > 0 ? availableWords : wordList;
         
         // Pick a random word from available words
-        currentWord = wordsToChooseFrom[Math.floor(Math.random() * wordsToChooseFrom.length)];
+        selectedWord = wordsToChooseFrom[Math.floor(Math.random() * wordsToChooseFrom.length)];
     }
     
     // Add to used words list
-    if (!usedWordsAtCurrentLength.includes(currentWord)) {
-        usedWordsAtCurrentLength.push(currentWord);
+    if (!usedWordsAtCurrentLength.includes(selectedWord)) {
+        usedWordsAtCurrentLength.push(selectedWord);
     }
     
-    // Reset game state
-    typedLetters = [];
-    gameActive = false;
-    
-    // Create placeholder boxes with letters initially
-    createPlaceholderBoxesWithLetters();
-    
-    // Clear scattered letters
-    scatteredLettersContainer.innerHTML = '';
-    scatteredLetters = [];
-    
-    updateUI();
+    // Assign to appropriate word variable
+    if (wordNumber === 1) {
+        currentWord = selectedWord;
+    } else {
+        currentWord2 = selectedWord;
+    }
 }
 
 // Create placeholder boxes with letters initially visible
@@ -196,6 +293,22 @@ function createPlaceholderBoxesWithLetters() {
         box.textContent = currentWord[i]; // Show the letter initially
         placeholderBoxes.appendChild(box);
         letterBoxes.push(box);
+    }
+}
+
+// Create placeholder boxes for second word
+function createPlaceholderBoxesWithLetters2() {
+    placeholderBoxes2.innerHTML = '';
+    letterBoxes2 = [];
+    
+    for (let i = 0; i < currentWord2.length; i++) {
+        const box = document.createElement('div');
+        box.className = 'letter-box filled';
+        box.dataset.index = i;
+        box.dataset.wordNumber = '2'; // Mark as second word
+        box.textContent = currentWord2[i]; // Show the letter initially
+        placeholderBoxes2.appendChild(box);
+        letterBoxes2.push(box);
     }
 }
 
@@ -222,6 +335,14 @@ function startGame() {
     // Reset game session tracking
     completedWords = [];
     skippedWords = [];
+    word1Completed = false;
+    word2Completed = false;
+    
+    // Set initial active word for two-words mode
+    if (gameMode === 'double') {
+        activeWord = 1; // Initialize first
+        setActiveWord(1); // Then set with visual feedback
+    }
     
     // Show skip button during gameplay and update its text
     skipWordBtn.style.display = 'inline-block';
@@ -265,16 +386,30 @@ function scatterLettersFromPlaceholders() {
     
     const containerRect = document.querySelector('.letters-container').getBoundingClientRect();
     const usedPositions = [];
+    let delayCounter = 0;
     
-    for (let i = 0; i < currentWord.length; i++) {
-        const placeholderBox = letterBoxes[i];
+    // Scatter letters from first word
+    scatterWordLetters(currentWord, letterBoxes, containerRect, usedPositions, delayCounter, 1);
+    delayCounter += currentWord.length;
+    
+    // Scatter letters from second word (if in double mode)
+    if (gameMode === 'double') {
+        scatterWordLetters(currentWord2, letterBoxes2, containerRect, usedPositions, delayCounter, 2);
+    }
+}
+
+// Helper function to scatter letters from a specific word
+function scatterWordLetters(word, boxes, containerRect, usedPositions, startDelay, wordNumber) {
+    for (let i = 0; i < word.length; i++) {
+        const placeholderBox = boxes[i];
         
         // Create scattered letter
         const letter = document.createElement('div');
         letter.className = 'scattered-letter';
-        letter.textContent = currentWord[i];
-        letter.dataset.letter = currentWord[i];
+        letter.textContent = word[i];
+        letter.dataset.letter = word[i];
         letter.dataset.originalIndex = i;
+        letter.dataset.wordNumber = wordNumber; // Track which word this letter belongs to
         
         // Start at placeholder position
         const placeholderRect = placeholderBox.getBoundingClientRect();
@@ -310,7 +445,7 @@ function scatterLettersFromPlaceholders() {
             letter.style.left = position.x + 'px';
             letter.style.top = position.y + 'px';
             letter.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg)';
-        }, i * 100); // Stagger the animations
+        }, (startDelay + i) * 100); // Stagger the animations
     }
 }
 
@@ -338,50 +473,100 @@ function isPositionOverlapping(newPos, existingPositions) {
 function handleKeyPress(e) {
     if (!gameActive) return;
     
-    const key = e.key.toUpperCase();
+    const key = e.key;
     
-    if (key === 'BACKSPACE') {
+    // Handle word switching shortcuts in two-words mode
+    if (gameMode === 'double') {
+        if (key === '1') {
+            setActiveWord(1);
+            e.preventDefault();
+            return;
+        }
+        if (key === '2') {
+            setActiveWord(2);
+            e.preventDefault();
+            return;
+        }
+        if (key === 'ArrowUp') {
+            setActiveWord(1);
+            e.preventDefault();
+            return;
+        }
+        if (key === 'ArrowDown') {
+            setActiveWord(2);
+            e.preventDefault();
+            return;
+        }
+    }
+    
+    const keyUpper = key.toUpperCase();
+    
+    if (keyUpper === 'BACKSPACE') {
         handleBackspace();
         e.preventDefault();
         return;
     }
     
     // Check if it's a valid letter and we have scattered letters available
-    if (key.length === 1 && key.match(/[A-Z]/) && scatteredLetters.length > 0) {
-        handleLetterInput(key);
+    if (keyUpper.length === 1 && keyUpper.match(/[A-Z]/) && scatteredLetters.length > 0) {
+        handleLetterInput(keyUpper);
         e.preventDefault();
     }
 }
 
 // Handle letter input
 function handleLetterInput(letter) {
-    const expectedLetter = currentWord[typedLetters.length];
-    
-    if (letter === expectedLetter) {
-        // Correct letter
-        handleCorrectLetter(letter);
+    if (gameMode === 'single') {
+        // Single word mode - existing logic
+        const expectedLetter = currentWord[typedLetters.length];
+        
+        if (letter === expectedLetter) {
+            handleCorrectLetter(letter, 1);
+        } else {
+            handleWrongLetter(letter, 1);
+        }
     } else {
-        // Wrong letter - show error animation
-        handleWrongLetter(letter);
+        // Two words mode - check active word
+        const word = activeWord === 1 ? currentWord : currentWord2;
+        const typed = activeWord === 1 ? typedLetters : typedLetters2;
+        const expectedLetter = word[typed.length];
+        
+        if (letter === expectedLetter) {
+            handleCorrectLetter(letter, activeWord);
+        } else {
+            handleWrongLetter(letter, activeWord);
+        }
     }
 }
 
 // Handle wrong letter input
-function handleWrongLetter(letter) {
-    const letterIndex = typedLetters.length;
-    const targetBox = letterBoxes[letterIndex];
+function handleWrongLetter(letter, wordNumber = 1) {
+    const isWord1 = wordNumber === 1;
+    const currentTyped = isWord1 ? typedLetters : typedLetters2;
+    const currentBoxes = isWord1 ? letterBoxes : letterBoxes2;
+    
+    const letterIndex = currentTyped.length;
+    const targetBox = currentBoxes[letterIndex];
     
     if (!targetBox) return; // No more boxes available
     
-    // Find a scattered letter with this character (any of them will do)
-    const scatteredLetter = scatteredLetters.find(l => l.dataset.letter === letter);
+    // Find a scattered letter with this character from the correct word
+    let scatteredLetter = scatteredLetters.find(l => 
+        l.dataset.letter === letter && 
+        l.dataset.wordNumber === wordNumber.toString()
+    );
+    
+    // If no letter found from this word, find any letter with this character (fallback)
+    if (!scatteredLetter) {
+        scatteredLetter = scatteredLetters.find(l => l.dataset.letter === letter);
+    }
     
     if (scatteredLetter && targetBox) {
         // Animate letter moving to placeholder (but as wrong/red)
         moveWrongLetterToPlaceholder(scatteredLetter, targetBox, letterIndex, letter);
         
-        // Add to typed letters (so backspace can remove it)
-        typedLetters.push(letter);
+        // Add to typed letters for the appropriate word
+        currentTyped.push(letter);
         
         updateUI();
     }
@@ -420,17 +605,31 @@ function moveWrongLetterToPlaceholder(scatteredLetter, targetBox, letterIndex, l
 }
 
 // Handle correct letter input
-function handleCorrectLetter(letter) {
-    const letterIndex = typedLetters.length;
-    const targetBox = letterBoxes[letterIndex];
+function handleCorrectLetter(letter, wordNumber = 1) {
+    const isWord1 = wordNumber === 1;
+    const currentTyped = isWord1 ? typedLetters : typedLetters2;
+    const currentTargetWord = isWord1 ? currentWord : currentWord2;
+    const currentBoxes = isWord1 ? letterBoxes : letterBoxes2;
     
-    // Find the scattered letter - prefer one with correct originalIndex, but accept any if needed
+    const letterIndex = currentTyped.length;
+    const targetBox = currentBoxes[letterIndex];
+    
+    // Find the scattered letter that belongs to this word
     let scatteredLetter = scatteredLetters.find(l => 
         l.dataset.letter === letter && 
+        l.dataset.wordNumber === wordNumber.toString() &&
         parseInt(l.dataset.originalIndex) === letterIndex
     );
     
-    // If no exact match found, find any letter with the same character
+    // If no exact match found, find any letter with the same character from this word
+    if (!scatteredLetter) {
+        scatteredLetter = scatteredLetters.find(l => 
+            l.dataset.letter === letter && 
+            l.dataset.wordNumber === wordNumber.toString()
+        );
+    }
+    
+    // Final fallback - find any letter with the same character (for compatibility)
     if (!scatteredLetter) {
         scatteredLetter = scatteredLetters.find(l => l.dataset.letter === letter);
     }
@@ -439,21 +638,56 @@ function handleCorrectLetter(letter) {
         // Animate letter moving to placeholder
         moveLetterToPlaceholder(scatteredLetter, targetBox, letterIndex);
         
-        // Add to typed letters
-        typedLetters.push(letter);
+        // Add to typed letters for the appropriate word
+        currentTyped.push(letter);
         
-        // Check if word is complete and all letters are correct
-        if (typedLetters.length === currentWord.length) {
-            // Check if all letters match (no errors)
-            const isWordCorrect = typedLetters.every((letter, index) => letter === currentWord[index]);
+        // Check if this word is complete and all letters are correct
+        if (currentTyped.length === currentTargetWord.length) {
+            const isWordCorrect = currentTyped.every((letter, index) => letter === currentTargetWord[index]);
             if (isWordCorrect) {
-                setTimeout(() => {
-                    completeWord();
-                }, 500);
+                // Mark this word as completed
+                if (isWord1) {
+                    word1Completed = true;
+                } else {
+                    word2Completed = true;
+                }
+                
+                // Check if we should move to next words
+                checkAllWordsCompleted();
             }
         }
         
         updateUI();
+    }
+}
+
+// Check if all required words are completed
+function checkAllWordsCompleted() {
+    if (gameMode === 'single') {
+        // Single word mode - complete when word1 is done
+        if (word1Completed) {
+            setTimeout(() => {
+                completeWord();
+            }, 500);
+        }
+    } else {
+        // Two words mode - handle automatic switching and completion
+        if (word1Completed && !word2Completed) {
+            // First word completed, automatically switch to second word
+            setTimeout(() => {
+                setActiveWord(2);
+            }, 100);
+        } else if (word2Completed && !word1Completed) {
+            // Second word completed, switch back to first word
+            setTimeout(() => {
+                setActiveWord(1);
+            }, 100);
+        } else if (word1Completed && word2Completed) {
+            // Both words completed - move to next words
+            setTimeout(() => {
+                completeWord();
+            }, 500);
+        }
     }
 }
 
@@ -491,27 +725,34 @@ function moveLetterToPlaceholder(scatteredLetter, targetBox, letterIndex) {
 
 // Handle backspace
 function handleBackspace() {
-    if (typedLetters.length === 0) return;
+    // In single mode, always use word 1
+    const wordToUse = gameMode === 'single' ? 1 : activeWord;
+    const currentTyped = wordToUse === 1 ? typedLetters : typedLetters2;
+    const currentTargetWord = wordToUse === 1 ? currentWord : currentWord2;
+    const currentBoxes = wordToUse === 1 ? letterBoxes : letterBoxes2;
     
-    const lastLetterIndex = typedLetters.length - 1;
-    const lastLetter = typedLetters[lastLetterIndex];
-    const targetBox = letterBoxes[lastLetterIndex];
+    if (currentTyped.length === 0) return;
+    
+    const lastLetterIndex = currentTyped.length - 1;
+    const lastLetter = currentTyped[lastLetterIndex];
+    const targetBox = currentBoxes[lastLetterIndex];
     
     // Create scattered letter again at the placeholder position first
     const scatteredLetter = document.createElement('div');
     scatteredLetter.className = 'scattered-letter';
     scatteredLetter.textContent = lastLetter;
     scatteredLetter.dataset.letter = lastLetter;
+    scatteredLetter.dataset.wordNumber = wordToUse.toString();
     
     // Set originalIndex - if it's the correct letter for this position, use the position
     // Otherwise, find where this letter should originally belong in the word
     let originalIndex = -1;
-    if (lastLetter === currentWord[lastLetterIndex]) {
+    if (lastLetter === currentTargetWord[lastLetterIndex]) {
         originalIndex = lastLetterIndex;
     } else {
         // Find the first occurrence of this letter in the word that hasn't been placed yet
-        for (let i = 0; i < currentWord.length; i++) {
-            if (currentWord[i] === lastLetter && i >= typedLetters.length - 1) {
+        for (let i = 0; i < currentTargetWord.length; i++) {
+            if (currentTargetWord[i] === lastLetter && i >= currentTyped.length - 1) {
                 originalIndex = i;
                 break;
             }
@@ -547,8 +788,15 @@ function handleBackspace() {
         scatteredLetter.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg)';
     }, 50); // Small delay to ensure the element is rendered
     
-    // Remove from typed letters
-    typedLetters.pop();
+    // Remove from typed letters for the correct word
+    currentTyped.pop();
+    
+    // Reset completion flag if word was completed
+    if (wordToUse === 1) {
+        word1Completed = false;
+    } else {
+        word2Completed = false;
+    }
     
     updateUI();
 }
@@ -815,8 +1063,29 @@ function updateTimer() {
 function updateUI() {
     scoreEl.textContent = score;
     levelEl.textContent = level;
-    progressText.textContent = typedLetters.join('');
-    typedLettersEl.textContent = typedLetters.join(' ');
+    
+    // Update progress for word 1
+    const currentProgressText = document.getElementById('progress-text');
+    if (currentProgressText) {
+        currentProgressText.textContent = typedLetters.join('');
+    }
+    if (typedLettersEl) {
+        typedLettersEl.textContent = typedLetters.join(' ');
+    }
+    
+    // Update progress for word 2 (if in double mode)
+    if (gameMode === 'double') {
+        const currentProgressText2 = document.getElementById('progress-text-2');
+        const currentTypedLettersEl2 = document.getElementById('typed-letters-2');
+        
+        if (currentProgressText2) {
+            currentProgressText2.textContent = typedLetters2.join('');
+        }
+        if (currentTypedLettersEl2) {
+            currentTypedLettersEl2.textContent = typedLetters2.join(' ');
+        }
+    }
+    
     // Skip button text is updated separately to avoid flickering during animations
 }
 

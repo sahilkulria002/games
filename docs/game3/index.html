@@ -34,21 +34,40 @@
 
         <!-- Header Controls -->
         <div class="header-controls">
-            <h1>Memory Table</h1>
-            <div class="controls">
-                <div class="control-group">
-                    <label for="display-time">Display Time:</label>
-                    <input type="range" id="display-time" min="0.1" max="10" value="2" step="0.1">
-                    <span id="display-time-value">2.0s</span>
+            <!-- First Row: Title and Main Controls -->
+            <div class="header-row-1">
+                <h1>Memory Table</h1>
+                <div class="main-controls">
+                    <div class="control-group">
+                        <label for="game-mode">Game Mode:</label>
+                        <select id="game-mode">
+                            <option value="single">Single Word</option>
+                            <option value="double">Two Words</option>
+                        </select>
+                    </div>
+                    <button id="custom-text-btn">Custom Text</button>
+                    <button id="start-btn">Start Game</button>
+                    <button id="skip-word-btn" class="skip-btn">Skip Word</button>
                 </div>
-                <div class="control-group">
-                    <label for="starting-length">Start Length:</label>
-                    <input type="range" id="starting-length" min="3" max="8" value="3" step="1">
-                    <span id="starting-length-value">3 letters</span>
+            </div>
+            
+            <!-- Second Row: Settings and Mode Hint -->
+            <div class="header-row-2">
+                <div class="settings-controls">
+                    <div class="control-group">
+                        <label for="display-time">Display Time:</label>
+                        <input type="range" id="display-time" min="0.1" max="10" value="2" step="0.1">
+                        <span id="display-time-value">2.0s</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="starting-length">Start Length:</label>
+                        <input type="range" id="starting-length" min="3" max="8" value="3" step="1">
+                        <span id="starting-length-value">3 letters</span>
+                    </div>
                 </div>
-                <button id="custom-text-btn">Custom Text</button>
-                <button id="start-btn">Start Game</button>
-                <button id="skip-word-btn" class="skip-btn">Skip Word</button>
+                <div class="mode-hint" id="mode-hint" style="display: none;">
+                    <small>Press "1" or "2" to switch between words</small>
+                </div>
             </div>
         </div>
 
@@ -56,24 +75,41 @@
         <div class="game-area">
             <!-- Letter Boxes Container -->
             <div class="letters-container" id="letters-container">
-                <!-- Original placeholder boxes (center) -->
-                <div class="placeholder-boxes" id="placeholder-boxes">
-                    <!-- Will be populated by JavaScript -->
+                <!-- First word placeholder boxes -->
+                <div class="word-container" id="word-container-1" data-word-number="Word 1">
+                    <div class="placeholder-boxes" id="placeholder-boxes">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <!-- Input section for word 1 -->
+                    <div class="input-section" id="input-section-1">
+                        <div class="typed-letters" id="typed-letters">
+                            <!-- Will show letters as user types -->
+                        </div>
+                        <div class="input-feedback" id="input-feedback">
+                            <span id="progress-text"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Second word placeholder boxes (hidden in single mode) -->
+                <div class="word-container" id="word-container-2" data-word-number="Word 2" style="display: none;">
+                    <div class="placeholder-boxes" id="placeholder-boxes-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <!-- Input section for word 2 -->
+                    <div class="input-section" id="input-section-2">
+                        <div class="typed-letters" id="typed-letters-2">
+                            <!-- Will show letters as user types for second word -->
+                        </div>
+                        <div class="input-feedback" id="input-feedback-2">
+                            <span id="progress-text-2"></span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Scattered letter boxes -->
                 <div class="scattered-letters" id="scattered-letters">
                     <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Input Area -->
-            <div class="input-area">
-                <div class="typed-letters" id="typed-letters">
-                    <!-- Will show letters as user types -->
-                </div>
-                <div class="input-feedback" id="input-feedback">
-                    Type the spelling: <span id="progress-text"></span>
                 </div>
             </div>
         </div>
