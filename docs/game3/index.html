@@ -43,6 +43,8 @@
                         <select id="game-mode">
                             <option value="single">Single Word</option>
                             <option value="double">Two Words</option>
+                            <option value="triple">Three Words</option>
+                            <option value="quad">Four Words</option>
                         </select>
                     </div>
                     <button id="custom-text-btn">Custom Text</button>
@@ -103,6 +105,38 @@
                         </div>
                         <div class="input-feedback" id="input-feedback-2">
                             <span id="progress-text-2"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Third word placeholder boxes (hidden in single/double mode) -->
+                <div class="word-container" id="word-container-3" data-word-number="Word 3" style="display: none;">
+                    <div class="placeholder-boxes" id="placeholder-boxes-3">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <!-- Input section for word 3 -->
+                    <div class="input-section" id="input-section-3">
+                        <div class="typed-letters" id="typed-letters-3">
+                            <!-- Will show letters as user types for third word -->
+                        </div>
+                        <div class="input-feedback" id="input-feedback-3">
+                            <span id="progress-text-3"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fourth word placeholder boxes (hidden in single/double/triple mode) -->
+                <div class="word-container" id="word-container-4" data-word-number="Word 4" style="display: none;">
+                    <div class="placeholder-boxes" id="placeholder-boxes-4">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                    <!-- Input section for word 4 -->
+                    <div class="input-section" id="input-section-4">
+                        <div class="typed-letters" id="typed-letters-4">
+                            <!-- Will show letters as user types for fourth word -->
+                        </div>
+                        <div class="input-feedback" id="input-feedback-4">
+                            <span id="progress-text-4"></span>
                         </div>
                     </div>
                 </div>

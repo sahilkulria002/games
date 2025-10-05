@@ -6,18 +6,10 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    background: linear-gradient(135deg, #8B5CF6 0%, #667eea 100%);
     color: white;
     min-height: 100vh;
     overflow: hidden;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
 }
 
 .game-container {
@@ -448,7 +440,9 @@ select:focus {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 20px;
     text-align: center;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
 }
 
 .word-container:hover {
@@ -465,20 +459,82 @@ select:focus {
         0 4px 20px rgba(0,0,0,0.15);
 }
 
+/* Default positioning for multi-word modes */
 #word-container-1 {
-    transform: translateY(-30px);
+    top: 10%;
+    left: 120px;
+    transform: none;
 }
 
 #word-container-2 {
-    transform: translateY(30px);
+    top: 45%;
+    right: 50px;
+    left: auto;
+    transform: none;
+}
+
+#word-container-3 {
+    top: 80%;
+    left: 120px;
+    transform: none;
+}
+
+#word-container-4 {
+    top: 80%;
+    right: 50px;
+    left: auto;
+    transform: none;
+}
+
+/* Single word mode - center the first container */
+#word-container-1.single-mode {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 #word-container-1.active-word {
-    transform: translateY(-30px) scale(1.05);
+    top: 10%;
+    left: 120px;
+    transform: scale(1.05);
 }
 
 #word-container-2.active-word {
-    transform: translateY(30px) scale(1.05);
+    top: 45%;
+    right: 50px;
+    left: auto;
+    transform: scale(1.05);
+}
+
+#word-container-3.active-word {
+    top: 80%;
+    left: 120px;
+    transform: scale(1.05);
+}
+
+#word-container-4.active-word {
+    top: 80%;
+    right: 50px;
+    left: auto;
+    transform: scale(1.05);
+}
+
+/* Single word mode active state */
+#word-container-1.single-mode.active-word {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Right-aligned word containers should align content to the right */
+#word-container-2,
+#word-container-4 {
+    text-align: right;
+}
+
+#word-container-2 .placeholder-boxes,
+#word-container-4 .placeholder-boxes {
+    justify-content: flex-end;
 }
 
 /* Hide any floating word labels */

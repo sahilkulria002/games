@@ -1,21 +1,29 @@
 // Game state variables
 let currentWord = '';
 let currentWord2 = ''; // Second word for two-words mode
+let currentWord3 = ''; // Third word for three-words mode
+let currentWord4 = ''; // Fourth word for four-words mode
 let letterBoxes = [];
 let letterBoxes2 = []; // Second set of boxes for two-words mode
+let letterBoxes3 = []; // Third set of boxes for three-words mode
+let letterBoxes4 = []; // Fourth set of boxes for four-words mode
 let scatteredLetters = [];
 let typedLetters = [];
 let typedLetters2 = []; // Typed letters for second word
+let typedLetters3 = []; // Typed letters for third word
+let typedLetters4 = []; // Typed letters for fourth word
 let gameActive = false;
 let displayTime = 2000; // 2 seconds default
 let score = 0;
 let level = 1;
 let startTime = 0;
 let skipCount = 0; // Track number of skips used
-let gameMode = 'single'; // 'single' or 'double'
-let activeWord = 1; // Which word is currently being typed (1 or 2)
+let gameMode = 'single'; // 'single', 'double', 'triple', or 'quad'
+let activeWord = 1; // Which word is currently being typed (1, 2, 3, or 4)
 let word1Completed = false; // Track if first word is completed
 let word2Completed = false; // Track if second word is completed
+let word3Completed = false; // Track if third word is completed
+let word4Completed = false; // Track if fourth word is completed
 
 // Game session tracking
 let completedWords = []; // Words that were completed successfully  
@@ -56,15 +64,25 @@ const gameModeSelect = document.getElementById('game-mode');
 const startBtn = document.getElementById('start-btn');
 const placeholderBoxes = document.getElementById('placeholder-boxes');
 const placeholderBoxes2 = document.getElementById('placeholder-boxes-2');
+const placeholderBoxes3 = document.getElementById('placeholder-boxes-3');
+const placeholderBoxes4 = document.getElementById('placeholder-boxes-4');
 const wordContainer1 = document.getElementById('word-container-1');
 const wordContainer2 = document.getElementById('word-container-2');
+const wordContainer3 = document.getElementById('word-container-3');
+const wordContainer4 = document.getElementById('word-container-4');
 const inputSection1 = document.getElementById('input-section-1');
 const inputSection2 = document.getElementById('input-section-2');
+const inputSection3 = document.getElementById('input-section-3');
+const inputSection4 = document.getElementById('input-section-4');
 const scatteredLettersContainer = document.getElementById('scattered-letters');
 const typedLettersEl = document.getElementById('typed-letters');
 const typedLettersEl2 = document.getElementById('typed-letters-2');
+const typedLettersEl3 = document.getElementById('typed-letters-3');
+const typedLettersEl4 = document.getElementById('typed-letters-4');
 const progressText = document.getElementById('progress-text');
 const progressText2 = document.getElementById('progress-text-2');
+const progressText3 = document.getElementById('progress-text-3');
+const progressText4 = document.getElementById('progress-text-4');
 const scoreEl = document.getElementById('score');
 const levelEl = document.getElementById('level');
 const timerEl = document.getElementById('timer');
@@ -98,6 +116,7 @@ function init() {
     updateDisplayTime();
     initStartingLength();
     initializePanel();
+    updateGameMode(); // Initialize game mode styling
     generateNewWord();
     updateUI();
 }
@@ -160,44 +179,73 @@ function updateGameMode() {
     gameMode = gameModeSelect.value;
     const modeHint = document.getElementById('mode-hint');
     
-    if (gameMode === 'double') {
-        // Show second word containers
-        wordContainer2.style.display = 'block';
-        if (modeHint) modeHint.style.display = 'block';
-    } else {
-        // Hide second word containers
-        wordContainer2.style.display = 'none';
+    // Hide all word containers first
+    wordContainer2.style.display = 'none';
+    wordContainer3.style.display = 'none';
+    wordContainer4.style.display = 'none';
+    
+    // Remove/add single-mode class based on game mode
+    if (gameMode === 'single') {
+        wordContainer1.classList.add('single-mode');
         if (modeHint) modeHint.style.display = 'none';
+    } else {
+        wordContainer1.classList.remove('single-mode');
+        if (modeHint) modeHint.style.display = 'block';
+    }
+    
+    // Show appropriate containers based on mode
+    if (gameMode === 'double') {
+        wordContainer2.style.display = 'block';
+    } else if (gameMode === 'triple') {
+        wordContainer2.style.display = 'block';
+        wordContainer3.style.display = 'block';
+    } else if (gameMode === 'quad') {
+        wordContainer2.style.display = 'block';
+        wordContainer3.style.display = 'block';
+        wordContainer4.style.display = 'block';
     }
     
     generateNewWord();
 }
 
-// Set active word for typing in two-words mode
+// Set active word for typing in multi-word modes
 function setActiveWord(wordNumber) {
-    if (gameMode !== 'double') return;
+    if (gameMode === 'single') return;
     
     activeWord = wordNumber;
     
     // Visual feedback - highlight active word container
     wordContainer1.classList.toggle('active-word', wordNumber === 1);
     wordContainer2.classList.toggle('active-word', wordNumber === 2);
+    wordContainer3.classList.toggle('active-word', wordNumber === 3);
+    wordContainer4.classList.toggle('active-word', wordNumber === 4);
     
     // Update input feedback to show which word is active
     const feedback1 = document.getElementById('input-feedback');
     const feedback2 = document.getElementById('input-feedback-2');
+    const feedback3 = document.getElementById('input-feedback-3');
+    const feedback4 = document.getElementById('input-feedback-4');
     
     if (gameMode === 'double') {
-        if (wordNumber === 1) {
-            feedback1.innerHTML = 'Word 1 (Active)';
-            feedback2.innerHTML = 'Word 2';
-        } else {
-            feedback1.innerHTML = 'Word 1';
-            feedback2.innerHTML = 'Word 2 (Active)';
-        }
+        feedback1.innerHTML = wordNumber === 1 ? 'Word 1 (Active)' : 'Word 1';
+        feedback2.innerHTML = wordNumber === 2 ? 'Word 2 (Active)' : 'Word 2';
+        feedback3.innerHTML = '';
+        feedback4.innerHTML = '';
+    } else if (gameMode === 'triple') {
+        feedback1.innerHTML = wordNumber === 1 ? 'Word 1 (Active)' : 'Word 1';
+        feedback2.innerHTML = wordNumber === 2 ? 'Word 2 (Active)' : 'Word 2';
+        feedback3.innerHTML = wordNumber === 3 ? 'Word 3 (Active)' : 'Word 3';
+        feedback4.innerHTML = '';
+    } else if (gameMode === 'quad') {
+        feedback1.innerHTML = wordNumber === 1 ? 'Word 1 (Active)' : 'Word 1';
+        feedback2.innerHTML = wordNumber === 2 ? 'Word 2 (Active)' : 'Word 2';
+        feedback3.innerHTML = wordNumber === 3 ? 'Word 3 (Active)' : 'Word 3';
+        feedback4.innerHTML = wordNumber === 4 ? 'Word 4 (Active)' : 'Word 4';
     } else {
         feedback1.innerHTML = '';
         feedback2.innerHTML = '';
+        feedback3.innerHTML = '';
+        feedback4.innerHTML = '';
     }
     
     // Re-get the progress text elements since we just changed the HTML
@@ -222,22 +270,38 @@ function generateNewWord() {
     // Generate first word
     generateSingleWord(wordSource, 1);
     
-    // Generate second word if in double mode
-    if (gameMode === 'double') {
+    // Generate additional words based on game mode
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
         generateSingleWord(wordSource, 2);
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        generateSingleWord(wordSource, 3);
+    }
+    if (gameMode === 'quad') {
+        generateSingleWord(wordSource, 4);
     }
     
     // Reset game state
     typedLetters = [];
     typedLetters2 = [];
+    typedLetters3 = [];
+    typedLetters4 = [];
     word1Completed = false;
     word2Completed = false;
+    word3Completed = false;
+    word4Completed = false;
     gameActive = false;
     
     // Create placeholder boxes with letters initially
     createPlaceholderBoxesWithLetters();
-    if (gameMode === 'double') {
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
         createPlaceholderBoxesWithLetters2();
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+         createPlaceholderBoxesWithLetters3();
+    }
+    if (gameMode === 'quad') {
+        createPlaceholderBoxesWithLetters4();
     }
     
     // Clear scattered letters
@@ -247,7 +311,7 @@ function generateNewWord() {
     updateUI();
 }
 
-// Generate a single word for the specified word number (1 or 2)
+// Generate a single word for the specified word number (1, 2, 3, or 4)
 function generateSingleWord(wordSource, wordNumber) {
     // Get available words for current length
     const wordList = wordSource[currentWordLength];
@@ -276,8 +340,12 @@ function generateSingleWord(wordSource, wordNumber) {
     // Assign to appropriate word variable
     if (wordNumber === 1) {
         currentWord = selectedWord;
-    } else {
+    } else if (wordNumber === 2) {
         currentWord2 = selectedWord;
+    } else if (wordNumber === 3) {
+        currentWord3 = selectedWord;
+    } else if (wordNumber === 4) {
+        currentWord4 = selectedWord;
     }
 }
 
@@ -309,6 +377,38 @@ function createPlaceholderBoxesWithLetters2() {
         box.textContent = currentWord2[i]; // Show the letter initially
         placeholderBoxes2.appendChild(box);
         letterBoxes2.push(box);
+    }
+}
+
+// Create placeholder boxes with letters for third word
+function createPlaceholderBoxesWithLetters3() {
+    placeholderBoxes3.innerHTML = '';
+    letterBoxes3 = [];
+    
+    for (let i = 0; i < currentWord3.length; i++) {
+        const box = document.createElement('div');
+        box.className = 'letter-box filled';
+        box.dataset.index = i;
+        box.dataset.wordNumber = '3'; // Mark as third word
+        box.textContent = currentWord3[i]; // Show the letter initially
+        placeholderBoxes3.appendChild(box);
+        letterBoxes3.push(box);
+    }
+}
+
+// Create placeholder boxes with letters for fourth word
+function createPlaceholderBoxesWithLetters4() {
+    placeholderBoxes4.innerHTML = '';
+    letterBoxes4 = [];
+    
+    for (let i = 0; i < currentWord4.length; i++) {
+        const box = document.createElement('div');
+        box.className = 'letter-box filled';
+        box.dataset.index = i;
+        box.dataset.wordNumber = '4'; // Mark as fourth word
+        box.textContent = currentWord4[i]; // Show the letter initially
+        placeholderBoxes4.appendChild(box);
+        letterBoxes4.push(box);
     }
 }
 
@@ -392,9 +492,17 @@ function scatterLettersFromPlaceholders() {
     scatterWordLetters(currentWord, letterBoxes, containerRect, usedPositions, delayCounter, 1);
     delayCounter += currentWord.length;
     
-    // Scatter letters from second word (if in double mode)
-    if (gameMode === 'double') {
+    // Scatter letters from additional words based on game mode
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
         scatterWordLetters(currentWord2, letterBoxes2, containerRect, usedPositions, delayCounter, 2);
+        delayCounter += currentWord2.length;
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        scatterWordLetters(currentWord3, letterBoxes3, containerRect, usedPositions, delayCounter, 3);
+        delayCounter += currentWord3.length;
+    }
+    if (gameMode === 'quad') {
+        scatterWordLetters(currentWord4, letterBoxes4, containerRect, usedPositions, delayCounter, 4);
     }
 }
 
@@ -475,25 +583,39 @@ function handleKeyPress(e) {
     
     const key = e.key;
     
-    // Handle word switching shortcuts in two-words mode
-    if (gameMode === 'double') {
+    // Handle word switching shortcuts in multi-word modes
+    if (gameMode !== 'single') {
         if (key === '1') {
             setActiveWord(1);
             e.preventDefault();
             return;
         }
-        if (key === '2') {
+        if (key === '2' && (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad')) {
             setActiveWord(2);
             e.preventDefault();
             return;
         }
+        if (key === '3' && (gameMode === 'triple' || gameMode === 'quad')) {
+            setActiveWord(3);
+            e.preventDefault();
+            return;
+        }
+        if (key === '4' && gameMode === 'quad') {
+            setActiveWord(4);
+            e.preventDefault();
+            return;
+        }
+        
+        // Arrow key navigation
         if (key === 'ArrowUp') {
-            setActiveWord(1);
+            const maxWords = gameMode === 'quad' ? 4 : gameMode === 'triple' ? 3 : 2;
+            setActiveWord(activeWord > 1 ? activeWord - 1 : maxWords);
             e.preventDefault();
             return;
         }
         if (key === 'ArrowDown') {
-            setActiveWord(2);
+            const maxWords = gameMode === 'quad' ? 4 : gameMode === 'triple' ? 3 : 2;
+            setActiveWord(activeWord < maxWords ? activeWord + 1 : 1);
             e.preventDefault();
             return;
         }
@@ -526,9 +648,22 @@ function handleLetterInput(letter) {
             handleWrongLetter(letter, 1);
         }
     } else {
-        // Two words mode - check active word
-        const word = activeWord === 1 ? currentWord : currentWord2;
-        const typed = activeWord === 1 ? typedLetters : typedLetters2;
+        // Multi-word mode - check active word
+        let word, typed;
+        if (activeWord === 1) {
+            word = currentWord;
+            typed = typedLetters;
+        } else if (activeWord === 2) {
+            word = currentWord2;
+            typed = typedLetters2;
+        } else if (activeWord === 3) {
+            word = currentWord3;
+            typed = typedLetters3;
+        } else if (activeWord === 4) {
+            word = currentWord4;
+            typed = typedLetters4;
+        }
+        
         const expectedLetter = word[typed.length];
         
         if (letter === expectedLetter) {
@@ -541,9 +676,21 @@ function handleLetterInput(letter) {
 
 // Handle wrong letter input
 function handleWrongLetter(letter, wordNumber = 1) {
-    const isWord1 = wordNumber === 1;
-    const currentTyped = isWord1 ? typedLetters : typedLetters2;
-    const currentBoxes = isWord1 ? letterBoxes : letterBoxes2;
+    let currentTyped, currentBoxes;
+    
+    if (wordNumber === 1) {
+        currentTyped = typedLetters;
+        currentBoxes = letterBoxes;
+    } else if (wordNumber === 2) {
+        currentTyped = typedLetters2;
+        currentBoxes = letterBoxes2;
+    } else if (wordNumber === 3) {
+        currentTyped = typedLetters3;
+        currentBoxes = letterBoxes3;
+    } else if (wordNumber === 4) {
+        currentTyped = typedLetters4;
+        currentBoxes = letterBoxes4;
+    }
     
     const letterIndex = currentTyped.length;
     const targetBox = currentBoxes[letterIndex];
@@ -606,10 +753,25 @@ function moveWrongLetterToPlaceholder(scatteredLetter, targetBox, letterIndex, l
 
 // Handle correct letter input
 function handleCorrectLetter(letter, wordNumber = 1) {
-    const isWord1 = wordNumber === 1;
-    const currentTyped = isWord1 ? typedLetters : typedLetters2;
-    const currentTargetWord = isWord1 ? currentWord : currentWord2;
-    const currentBoxes = isWord1 ? letterBoxes : letterBoxes2;
+    let currentTyped, currentTargetWord, currentBoxes;
+    
+    if (wordNumber === 1) {
+        currentTyped = typedLetters;
+        currentTargetWord = currentWord;
+        currentBoxes = letterBoxes;
+    } else if (wordNumber === 2) {
+        currentTyped = typedLetters2;
+        currentTargetWord = currentWord2;
+        currentBoxes = letterBoxes2;
+    } else if (wordNumber === 3) {
+        currentTyped = typedLetters3;
+        currentTargetWord = currentWord3;
+        currentBoxes = letterBoxes3;
+    } else if (wordNumber === 4) {
+        currentTyped = typedLetters4;
+        currentTargetWord = currentWord4;
+        currentBoxes = letterBoxes4;
+    }
     
     const letterIndex = currentTyped.length;
     const targetBox = currentBoxes[letterIndex];
@@ -646,10 +808,14 @@ function handleCorrectLetter(letter, wordNumber = 1) {
             const isWordCorrect = currentTyped.every((letter, index) => letter === currentTargetWord[index]);
             if (isWordCorrect) {
                 // Mark this word as completed
-                if (isWord1) {
+                if (wordNumber === 1) {
                     word1Completed = true;
-                } else {
+                } else if (wordNumber === 2) {
                     word2Completed = true;
+                } else if (wordNumber === 3) {
+                    word3Completed = true;
+                } else if (wordNumber === 4) {
+                    word4Completed = true;
                 }
                 
                 // Check if we should move to next words
@@ -670,7 +836,7 @@ function checkAllWordsCompleted() {
                 completeWord();
             }, 500);
         }
-    } else {
+    } else if (gameMode === 'double') {
         // Two words mode - handle automatic switching and completion
         if (word1Completed && !word2Completed) {
             // First word completed, automatically switch to second word
@@ -687,6 +853,44 @@ function checkAllWordsCompleted() {
             setTimeout(() => {
                 completeWord();
             }, 500);
+        }
+    } else if (gameMode === 'triple') {
+        // Three words mode - handle automatic switching and completion
+        const completedWords = [word1Completed, word2Completed, word3Completed];
+        const completedCount = completedWords.filter(Boolean).length;
+        
+        if (completedCount === 3) {
+            // All three words completed
+            setTimeout(() => {
+                completeWord();
+            }, 500);
+        } else {
+            // Find next incomplete word and switch to it
+            const nextIncomplete = completedWords.findIndex(completed => !completed) + 1;
+            if (nextIncomplete > 0 && nextIncomplete !== activeWord) {
+                setTimeout(() => {
+                    setActiveWord(nextIncomplete);
+                }, 100);
+            }
+        }
+    } else if (gameMode === 'quad') {
+        // Four words mode - handle automatic switching and completion
+        const completedWords = [word1Completed, word2Completed, word3Completed, word4Completed];
+        const completedCount = completedWords.filter(Boolean).length;
+        
+        if (completedCount === 4) {
+            // All four words completed
+            setTimeout(() => {
+                completeWord();
+            }, 500);
+        } else {
+            // Find next incomplete word and switch to it
+            const nextIncomplete = completedWords.findIndex(completed => !completed) + 1;
+            if (nextIncomplete > 0 && nextIncomplete !== activeWord) {
+                setTimeout(() => {
+                    setActiveWord(nextIncomplete);
+                }, 100);
+            }
         }
     }
 }
@@ -727,9 +931,25 @@ function moveLetterToPlaceholder(scatteredLetter, targetBox, letterIndex) {
 function handleBackspace() {
     // In single mode, always use word 1
     const wordToUse = gameMode === 'single' ? 1 : activeWord;
-    const currentTyped = wordToUse === 1 ? typedLetters : typedLetters2;
-    const currentTargetWord = wordToUse === 1 ? currentWord : currentWord2;
-    const currentBoxes = wordToUse === 1 ? letterBoxes : letterBoxes2;
+    
+    let currentTyped, currentTargetWord, currentBoxes;
+    if (wordToUse === 1) {
+        currentTyped = typedLetters;
+        currentTargetWord = currentWord;
+        currentBoxes = letterBoxes;
+    } else if (wordToUse === 2) {
+        currentTyped = typedLetters2;
+        currentTargetWord = currentWord2;
+        currentBoxes = letterBoxes2;
+    } else if (wordToUse === 3) {
+        currentTyped = typedLetters3;
+        currentTargetWord = currentWord3;
+        currentBoxes = letterBoxes3;
+    } else if (wordToUse === 4) {
+        currentTyped = typedLetters4;
+        currentTargetWord = currentWord4;
+        currentBoxes = letterBoxes4;
+    }
     
     if (currentTyped.length === 0) return;
     
@@ -806,8 +1026,17 @@ function completeWord() {
     gameActive = false;
     score += 10 * level; // More points for higher levels
     
-    // Track completed word
+    // Track completed words based on game mode
     completedWords.push(currentWord);
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+        completedWords.push(currentWord2);
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        completedWords.push(currentWord3);
+    }
+    if (gameMode === 'quad') {
+        completedWords.push(currentWord4);
+    }
     
     // Increment words completed at current length
     wordsCompletedAtCurrentLength++;
@@ -842,8 +1071,22 @@ function animateWordCompletion() {
     // Create sparkle effects
     createSparkleExplosion();
     
-    // Letter victory dance animation
-    letterBoxes.forEach((box, index) => {
+    // Letter victory dance animation for all active word containers
+    animateBoxesCompletion(letterBoxes);
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+        animateBoxesCompletion(letterBoxes2);
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        animateBoxesCompletion(letterBoxes3);
+    }
+    if (gameMode === 'quad') {
+        animateBoxesCompletion(letterBoxes4);
+    }
+}
+
+// Helper function to animate letter boxes completion
+function animateBoxesCompletion(boxes) {
+    boxes.forEach((box, index) => {
         setTimeout(() => {
             // Multi-stage celebration animation
             box.style.transition = 'all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
@@ -875,13 +1118,66 @@ function animateWordCompletion() {
 
 // Animate transition to next word
 function animateToNextWord() {
-    // Stop victory animation
-    letterBoxes.forEach(box => {
+    // Stop victory animation for all active word containers
+    stopVictoryAnimations(letterBoxes);
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+        stopVictoryAnimations(letterBoxes2);
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        stopVictoryAnimations(letterBoxes3);
+    }
+    if (gameMode === 'quad') {
+        stopVictoryAnimations(letterBoxes4);
+    }
+    
+    // Clean fade out with gentle scale for all active containers
+    animateFadeOut(letterBoxes);
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+        animateFadeOut(letterBoxes2);
+    }
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        animateFadeOut(letterBoxes3);
+    }
+    if (gameMode === 'quad') {
+        animateFadeOut(letterBoxes4);
+    }
+    
+    // Generate new word after fade out completes
+    setTimeout(() => {
+        generateNewWord();
+        updateUI();
+        
+        // Clean fade in with gentle scale for all active containers
+        setTimeout(() => {
+            animateFadeIn(letterBoxes);
+            if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
+                animateFadeIn(letterBoxes2);
+            }
+            if (gameMode === 'triple' || gameMode === 'quad') {
+                animateFadeIn(letterBoxes3);
+            }
+            if (gameMode === 'quad') {
+                animateFadeIn(letterBoxes4);
+            }
+            
+            // Start scattering after fade in
+            setTimeout(() => {
+                scatterLettersFromPlaceholders();
+                gameActive = true;
+            }, 600);
+        }, 100);
+    }, 800);
+}
+
+// Helper functions for animation
+function stopVictoryAnimations(boxes) {
+    boxes.forEach(box => {
         box.style.animation = 'none';
     });
-    
-    // Clean fade out with gentle scale
-    letterBoxes.forEach((box, index) => {
+}
+
+function animateFadeOut(boxes) {
+    boxes.forEach((box, index) => {
         setTimeout(() => {
             box.style.transition = 'all 0.4s ease-out';
             box.style.transform = 'scale(0.9)';
@@ -898,38 +1194,26 @@ function animateToNextWord() {
             }, 200); // Clear styling halfway through fade
         }, index * 60);
     });
-    
-    // Generate new word after fade out completes
-    setTimeout(() => {
-        generateNewWord();
-        updateUI();
+}
+
+function animateFadeIn(boxes) {
+    boxes.forEach((box, index) => {
+        // Reset styling first - remove inline styles to let CSS classes work
+        box.style.background = '';
+        box.style.boxShadow = '';
+        box.style.borderColor = '';
         
-        // Clean fade in with gentle scale
+        // Start invisible and slightly smaller
+        box.style.transition = 'none';
+        box.style.transform = 'scale(0.9)';
+        box.style.opacity = '0';
+        
         setTimeout(() => {
-            letterBoxes.forEach((box, index) => {
-                // Reset styling first - remove inline styles to let CSS classes work
-                box.style.background = '';
-                box.style.boxShadow = '';
-                box.style.borderColor = '';
-                
-                // Start invisible and slightly smaller
-                box.style.transition = 'none';
-                box.style.transform = 'scale(0.9)';
-                box.style.opacity = '0';
-                
-                setTimeout(() => {
-                    box.style.transition = 'all 0.5s ease-out';
-                    box.style.transform = 'scale(1)';
-                    box.style.opacity = '1';
-                }, index * 80);
-            });
-            
-            // Auto-start the next word after fade in completes
-            setTimeout(() => {
-                continueGame();
-            }, letterBoxes.length * 80 + 500);
-        }, 200);
-    }, letterBoxes.length * 60 + 400);
+            box.style.transition = 'all 0.5s ease-out';
+            box.style.transform = 'scale(1)';
+            box.style.opacity = '1';
+        }, index * 80);
+    });
 }
 
 // Create sparkle explosion effect
@@ -1073,8 +1357,8 @@ function updateUI() {
         typedLettersEl.textContent = typedLetters.join(' ');
     }
     
-    // Update progress for word 2 (if in double mode)
-    if (gameMode === 'double') {
+    // Update progress for word 2 (if in multi-word modes)
+    if (gameMode === 'double' || gameMode === 'triple' || gameMode === 'quad') {
         const currentProgressText2 = document.getElementById('progress-text-2');
         const currentTypedLettersEl2 = document.getElementById('typed-letters-2');
         
@@ -1083,6 +1367,32 @@ function updateUI() {
         }
         if (currentTypedLettersEl2) {
             currentTypedLettersEl2.textContent = typedLetters2.join(' ');
+        }
+    }
+    
+    // Update progress for word 3 (if in triple or quad modes)
+    if (gameMode === 'triple' || gameMode === 'quad') {
+        const currentProgressText3 = document.getElementById('progress-text-3');
+        const currentTypedLettersEl3 = document.getElementById('typed-letters-3');
+        
+        if (currentProgressText3) {
+            currentProgressText3.textContent = typedLetters3.join('');
+        }
+        if (currentTypedLettersEl3) {
+            currentTypedLettersEl3.textContent = typedLetters3.join(' ');
+        }
+    }
+    
+    // Update progress for word 4 (if in quad mode)
+    if (gameMode === 'quad') {
+        const currentProgressText4 = document.getElementById('progress-text-4');
+        const currentTypedLettersEl4 = document.getElementById('typed-letters-4');
+        
+        if (currentProgressText4) {
+            currentProgressText4.textContent = typedLetters4.join('');
+        }
+        if (currentTypedLettersEl4) {
+            currentTypedLettersEl4.textContent = typedLetters4.join(' ');
         }
     }
     
