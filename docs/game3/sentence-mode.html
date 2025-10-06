@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Table - Sentence Mode</title>
+    <link rel="stylesheet" href="sentence-style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Left Control Panel -->
+        <div class="left-panel" id="left-panel">
+            <div class="panel-header">
+                <h3>Game Settings</h3>
+                <button class="panel-toggle" id="panel-toggle">◀</button>
+            </div>
+            
+            <div class="panel-content">
+                <div class="setting-section">
+                    <h4>Sentence Difficulty</h4>
+                    <p class="setting-description">Choose the complexity of sentences:</p>
+                    
+                    <div class="difficulty-controls">
+                        <label>
+                            <input type="radio" name="difficulty" value="easy" checked>
+                            <span>Easy (3-5 words)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="difficulty" value="medium">
+                            <span>Medium (6-8 words)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="difficulty" value="hard">
+                            <span>Hard (9-12 words)</span>
+                        </label>
+                    </div>
+                    
+                    <div class="panel-actions">
+                        <button id="apply-settings" class="panel-btn primary">Apply Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header Controls -->
+        <div class="header-controls">
+            <!-- First Row: Title and Main Controls -->
+            <div class="header-row-1">
+                <h1>Memory Table - Sentences</h1>
+                <div class="main-controls">
+                    <div class="control-group">
+                        <label for="sentence-mode">Sentence Mode:</label>
+                        <select id="sentence-mode">
+                            <option value="single" selected>Single Sentence</option>
+                            <option value="double">Two Sentences</option>
+                            <option value="progressive">Progressive Mode</option>
+                        </select>
+                    </div>
+                    <button id="custom-text-btn">Custom Text</button>
+                    <button id="start-btn">Start Game</button>
+                    <button id="skip-sentence-btn" class="skip-btn">Skip Sentence</button>
+                </div>
+            </div>
+            
+            <!-- Second Row: Settings -->
+            <div class="header-row-2">
+                <div class="settings-controls">
+                    <div class="control-group">
+                        <label for="display-time">Display Time:</label>
+                        <input type="range" id="display-time" min="2" max="15" value="5" step="0.5">
+                        <span id="display-time-value">5.0s</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="word-spacing">Word Spacing:</label>
+                        <input type="range" id="word-spacing" min="20" max="100" value="50" step="10">
+                        <span id="word-spacing-value">50px</span>
+                    </div>
+                </div>
+                <div class="mode-switcher">
+                    <a href="index.html" class="mode-link">Word Mode</a>
+                    <span class="current-mode">Sentence Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Sentence Container -->
+            <div class="sentence-container" id="sentence-container">
+                <!-- First sentence placeholder -->
+                <div class="sentence-wrapper" id="sentence-wrapper-1">
+                    <div class="placeholder-words" id="placeholder-words-1">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Second sentence placeholder (hidden in single mode) -->
+                <div class="sentence-wrapper" id="sentence-wrapper-2" style="display: none;">
+                    <div class="placeholder-words" id="placeholder-words-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Scattered words -->
+                <div class="scattered-words" id="scattered-words">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Status -->
+        <div class="game-status">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="level">Level: <span id="level">1</span></div>
+            <div class="lives">Lives: <span id="lives">3</span></div>
+            <div class="timer">Time: <span id="timer">0s</span></div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div class="message-overlay" id="message-overlay">
+            <div class="message-content" id="message-content">
+                <h2 id="message-title">Well Done!</h2>
+                <p id="message-text">You completed the sentence correctly!</p>
+                <button id="next-sentence-btn">Next Sentence</button>
+                <button id="menu-btn">Main Menu</button>
+            </div>
+        </div>
+        
+
+    </div>
+
+    <!-- Custom Text Input Modal -->
+    <div class="text-input-overlay" id="text-input-overlay">
+        <div class="text-input-content">
+            <h2>Add Your Custom Text</h2>
+            <p>Paste any text (story, article, etc.) and we'll extract sentences for the game:</p>
+            <textarea id="custom-text-area" placeholder="Paste your text here... (minimum 100 words recommended for best experience)"></textarea>
+            <div class="text-input-controls">
+                <button id="process-text-btn">Process Text</button>
+                <button id="use-default-btn">Use Default Sentences</button>
+                <button id="cancel-text-btn">Cancel</button>
+            </div>
+            <div id="text-stats" class="text-stats"></div>
+        </div>
+    </div>
+
+    <script src="sentence-script.js"></script>
+</body>
+</html>

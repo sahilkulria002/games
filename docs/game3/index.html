@@ -42,7 +42,7 @@
                         <label for="game-mode">Game Mode:</label>
                         <select id="game-mode">
                             <option value="mix">Mix Mode (Progressive)</option>
-                            <option value="single">Single Word</option>
+                            <option value="single" selected>Single Word</option>
                             <option value="double">Two Words</option>
                             <option value="triple">Three Words</option>
                             <option value="quad">Four Words</option>
@@ -67,6 +67,10 @@
                         <input type="range" id="starting-length" min="3" max="8" value="3" step="1">
                         <span id="starting-length-value">3 letters</span>
                     </div>
+                </div>
+                <div class="mode-switcher">
+                    <span class="current-mode">Word Mode</span>
+                    <a href="sentence-mode.html" class="mode-link">Sentence Mode</a>
                 </div>
                 <div class="mode-hint" id="mode-hint" style="display: none;">
                     <small>Press "1" or "2" to switch between words</small>
@@ -153,6 +157,7 @@
         <div class="game-status">
             <div class="score">Score: <span id="score">0</span></div>
             <div class="level">Level: <span id="level">1</span></div>
+            <div class="lives">Lives: <span id="lives">3</span></div>
             <div class="timer">Time: <span id="timer">0s</span></div>
         </div>
 
@@ -165,6 +170,8 @@
                 <button id="menu-btn">Main Menu</button>
             </div>
         </div>
+        
+
     </div>
 
     <!-- Custom Text Input Modal -->

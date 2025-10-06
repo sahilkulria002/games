@@ -16,9 +16,10 @@ let gameActive = false;
 let displayTime = 2000; // 2 seconds default
 let score = 0;
 let level = 1;
+let lives = 3; // Player starts with 3 lives
 let startTime = 0;
 let skipCount = 0; // Track number of skips used
-let gameMode = 'mix'; // 'mix', 'single', 'double', 'triple', or 'quad'
+let gameMode = 'single'; // 'mix', 'single', 'double', 'triple', or 'quad'
 let activeWord = 1; // Which word is currently being typed (1, 2, 3, or 4)
 let word1Completed = false; // Track if first word is completed
 let word2Completed = false; // Track if second word is completed
@@ -99,6 +100,7 @@ const progressText3 = document.getElementById('progress-text-3');
 const progressText4 = document.getElementById('progress-text-4');
 const scoreEl = document.getElementById('score');
 const levelEl = document.getElementById('level');
+const livesEl = document.getElementById('lives');
 const timerEl = document.getElementById('timer');
 const messageOverlay = document.getElementById('message-overlay');
 const messageTitle = document.getElementById('message-title');
@@ -831,6 +833,9 @@ function handleWrongLetter(letter, wordNumber = 1) {
     }
     
     if (scatteredLetter && targetBox) {
+        // Decrease lives for wrong letter
+        lives--;
+        
         // Animate letter moving to placeholder (but as wrong/red)
         moveWrongLetterToPlaceholder(scatteredLetter, targetBox, letterIndex, letter);
         
@@ -838,6 +843,11 @@ function handleWrongLetter(letter, wordNumber = 1) {
         currentTyped.push(letter);
         
         updateUI();
+        
+        // Check for game over
+        if (lives <= 0) {
+            gameOver();
+        }
     }
 }
 
@@ -1529,6 +1539,7 @@ function resetToMenu() {
     gameActive = false;
     score = 0;
     level = 1;
+    lives = 3; // Reset lives to 3
     skipCount = 0; // Reset skip count
     
     // Hide skip button when not in game
@@ -1539,6 +1550,47 @@ function resetToMenu() {
     wordsCompletedAtCurrentLength = 0;
     usedWordsAtCurrentLength = [];
     
+    generateNewWord();
+    updateUI();
+}
+
+// Restart game (preserves custom text and game mode settings)
+function restartGame() {
+    hideMessage();
+    gameActive = false;
+    score = 0;
+    level = 1;
+    lives = 3;
+    skipCount = 0;
+    
+    // Reset typed letters
+    typedLetters = [];
+    typedLetters2 = [];
+    typedLetters3 = [];
+    typedLetters4 = [];
+    
+    // Reset game session tracking
+    completedWords = [];
+    skippedWords = [];
+    word1Completed = false;
+    word2Completed = false;
+    word3Completed = false;
+    word4Completed = false;
+    activeWord = 1;
+    
+    // Reset word progression variables
+    currentWordLength = parseInt(startingLengthSlider.value);
+    wordsCompletedAtCurrentLength = 0;
+    usedWordsAtCurrentLength = [];
+    
+    // Reset mix mode progression
+    mixModeStage = 1;
+    mixModeWordsCompleted = 0;
+    
+    // Hide skip button
+    skipWordBtn.style.display = 'none';
+    
+    // Generate new word and update UI
     generateNewWord();
     updateUI();
 }
@@ -1556,6 +1608,17 @@ function updateTimer() {
 // Update UI elements
 function updateUI() {
     scoreEl.textContent = score;
+    livesEl.textContent = lives;
+    
+    // Update lives visual feedback
+    const livesContainer = livesEl.parentElement;
+    livesContainer.classList.remove('low', 'critical');
+    
+    if (lives === 1) {
+        livesContainer.classList.add('critical');
+    } else if (lives === 2) {
+        livesContainer.classList.add('low');
+    }
     
     // Show stage info for mix mode, level for others
     if (gameMode === 'mix') {
@@ -1628,6 +1691,61 @@ function updateSkipButtonText() {
     }
 }
 
+// Game over when lives reach 0
+function gameOver() {
+    gameActive = false;
+    skipWordBtn.style.display = 'none';
+    
+    const messageContent = document.getElementById('message-content');
+    const totalWords = completedWords.length + skippedWords.length;
+    
+    let wordListHtml = '';
+    if (totalWords > 0) {
+        // Show completed words in green
+        completedWords.forEach(word => {
+            wordListHtml += `<span class="completed-word">${word}</span> `;
+        });
+        
+        // Show skipped words in white/gray  
+        skippedWords.forEach(word => {
+            wordListHtml += `<span class="skipped-word">${word}</span> `;
+        });
+    }
+    
+    messageContent.innerHTML = `
+        <h2 style="color: #f44336;">Game Over!</h2>
+        <p>You ran out of lives! Final Score: <strong>${score}</strong></p>
+        <div class="game-summary">
+            <p><strong>Performance Summary:</strong></p>
+            <p>✓ Completed: ${completedWords.length} words</p>
+            <p>⏭ Skipped: ${skippedWords.length} words</p>
+            ${wordListHtml ? `<div class="word-list">${wordListHtml}</div>` : ''}
+        </div>
+        <button id="restart-btn" class="message-btn">Try Again</button>
+        <button id="menu-btn-final" class="message-btn">Main Menu</button>
+    `;
+    
+    messageOverlay.classList.add('show');
+    
+    // Add event listeners for the new buttons
+    const restartBtn = document.getElementById('restart-btn');
+    const menuBtnFinal = document.getElementById('menu-btn-final');
+    
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            restartGame();
+            startGame();
+        });
+    }
+    
+    if (menuBtnFinal) {
+        menuBtnFinal.addEventListener('click', () => {
+            hideMessage();
+            resetToMenu();
+        });
+    }
+}
+
 // Show game over summary with word performance
 function showGameOverSummary() {
     const messageContent = document.getElementById('message-content');
@@ -1668,15 +1786,11 @@ function showGameOverSummary() {
     const restartBtn = document.getElementById('restart-btn');
     const menuBtn = document.getElementById('menu-btn');
     
-    restartBtn.addEventListener('click', restartGame);
+    restartBtn.addEventListener('click', () => {
+        restartGame();
+        startGame();
+    });
     menuBtn.addEventListener('click', resetToMenu);
-}
-
-// Restart game with current settings
-function restartGame() {
-    hideMessage();
-    // Don't reset settings, just restart the game
-    startGame();
 }
 
 // Custom text functions
