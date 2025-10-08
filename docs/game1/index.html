@@ -78,7 +78,6 @@
                 </div>
             </div>
             <canvas id="gameCanvas" width="600" height="600"></canvas>
-            <div id="gameOver" style="display:none; color:#ff4444; font-size:1.3rem; margin-top:24px;">Game Over!</div>
             
             <!-- Pause Modal -->
             <div id="pauseModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
@@ -86,6 +85,28 @@
                     <h2 style="color:#00ff88; margin:0 0 20px 0; font-size:2rem;">Game Paused</h2>
                     <p style="color:#fff; margin:0 0 30px 0; font-size:1.2rem;">Press ENTER or click Resume to continue</p>
                     <button class="btn" id="resumeBtn" style="background:linear-gradient(45deg,#00ff88,#0088ff); color:#fff; font-size:1.2rem; padding:12px 30px;">Resume Game</button>
+                </div>
+            </div>
+            
+            <!-- Game Over Modal -->
+            <div id="gameOverPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1001; justify-content:center; align-items:center;">
+                <div style="background:rgba(20,20,20,0.98); border-radius:20px; padding:50px; text-align:center; box-shadow:0 8px 32px rgba(0,255,136,0.4); border:2px solid #00ff88; max-width:600px; max-height:80vh; overflow-y:auto;">
+                    <h2 id="gameOverTitle" style="margin:0 0 30px 0; font-size:2.5rem;">Game Over!</h2>
+                    
+                    <div style="background:rgba(0,0,0,0.3); border-radius:15px; padding:30px; margin:20px 0;">
+                        <h3 style="color:#00ff88; margin:0 0 15px 0; font-size:1.5rem;">Final Score</h3>
+                        <p style="color:#fff; font-size:2rem; font-weight:bold; margin:0;" id="finalScore">0</p>
+                    </div>
+                    
+                    <div style="background:rgba(0,0,0,0.3); border-radius:15px; padding:30px; margin:20px 0;">
+                        <h3 style="color:#00ff88; margin:0 0 15px 0; font-size:1.5rem;">Text Completed</h3>
+                        <p style="color:#fff; font-size:1.1rem; line-height:1.6; margin:0; max-height:200px; overflow-y:auto; text-align:left; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px;" id="completedText">No words completed</p>
+                    </div>
+                    
+                    <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
+                        <button class="btn" id="playAgainBtn" style="background:linear-gradient(45deg,#00ff88,#0088ff); color:#fff; font-size:1.2rem; padding:15px 30px;">Play Again</button>
+                        <button class="btn" id="closePopupBtn" style="background:linear-gradient(45deg,#666,#888); color:#fff; font-size:1.2rem; padding:15px 30px;">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,7 +127,10 @@
     const scoreEl = document.getElementById('score');
     const startBtn = document.getElementById('startBtn');
     const restartBtn = document.getElementById('restartBtn');
-    const gameOverEl = document.getElementById('gameOver');
+    
+    // Track completed words for game over popup
+    let completedWords = [];
+    let completedText = '';
     // Start Game button handler
     startBtn.onclick = function() {
         resetGame();
@@ -147,10 +171,12 @@
         paused = false;
         wordIndex = 0;
         letterIndex = 0;
+        completedWords = [];
+        completedText = '';
         foodLetters = getFoodLetters();
         scoreEl.textContent = score;
-        gameOverEl.style.display = 'none';
         document.getElementById('pauseModal').style.display = 'none';
+        document.getElementById('gameOverPopup').style.display = 'none';
         // Hide start button, show restart and pause buttons
         startBtn.style.display = 'none';
         document.getElementById('pauseBtn').style.display = 'inline-block';
@@ -238,13 +264,18 @@
         if (head.x<0||head.x>=GRID_SIZE||head.y<0||head.y>=GRID_SIZE||snake.some(s=>s.x===head.x&&s.y===head.y)) {
             running = false;
             paused = false;
-            gameOverEl.style.display = 'block';
             restartBtn.style.display = 'inline-block';
             document.getElementById('pauseBtn').style.display = 'none';
             document.getElementById('pauseModal').style.display = 'none';
             clearInterval(interval);
             startBtn.style.display = 'inline-block';
             updateSetWordsButtonState();
+            
+            // Show game over popup
+            completedText = completedWords.join(' ');
+            setTimeout(() => {
+                showGameOverPopup();
+            }, 200);
             return;
         }
         snake.unshift(head);
@@ -272,6 +303,9 @@
                 if (letterIndex < words[wordIndex].length) {
                     // nothing, just go to next letter
                 } else {
+                    // Word completed - add to completed list
+                    completedWords.push(words[wordIndex]);
+                    
                     // Next word
                     wordIndex++;
                     letterIndex = 0;
@@ -280,8 +314,9 @@
                     if (!foodLetters.length) {
                         running = false;
                         paused = false;
-                        setTimeout(()=>{
-                            alert('You won!');
+                        completedText = completedWords.join(' ');
+                        setTimeout(() => {
+                            showGameCompletedPopup();
                         }, 200);
                         clearInterval(interval);
                         startBtn.style.display = 'inline-block';
@@ -481,6 +516,42 @@
             resumeGame();
         }
     });
+    
+    // Game over popup functions
+    function showGameOverPopup() {
+        const popup = document.getElementById('gameOverPopup');
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('completedText').textContent = completedText || 'No words completed';
+        document.getElementById('gameOverTitle').textContent = 'Game Over!';
+        document.getElementById('gameOverTitle').style.color = '#ff4444';
+        popup.style.display = 'flex';
+    }
+    
+    function showGameCompletedPopup() {
+        const popup = document.getElementById('gameOverPopup');
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('completedText').textContent = completedText;
+        document.getElementById('gameOverTitle').textContent = 'Congratulations!';
+        document.getElementById('gameOverTitle').style.color = '#00ff88';
+        popup.style.display = 'flex';
+    }
+    
+    // Game over popup button handlers
+    document.getElementById('playAgainBtn').onclick = () => {
+        document.getElementById('gameOverPopup').style.display = 'none';
+        resetGame();
+        let ms = getStepMs();
+        clearInterval(interval);
+        interval = setInterval(move, ms);
+        startBtn.style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+        restartBtn.style.display = 'inline-block';
+        updateSetWordsButtonState();
+    };
+    
+    document.getElementById('closePopupBtn').onclick = () => {
+        document.getElementById('gameOverPopup').style.display = 'none';
+    };
     
     // Set default words and speed display when page loads
     window.addEventListener('DOMContentLoaded', () => {
