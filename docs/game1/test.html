@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Snake Word Learning Game</title>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: Arial, sans-serif; 
+            background: #111; 
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+        }
+        canvas { 
+            border: 2px solid #00ff88; 
+            background: #000; 
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            padding: 10px 20px;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #score {
+            font-size: 1.5rem;
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div class="controls">
+        <button id="startBtn">Start Game</button>
+        <button id="pauseBtn" style="display:none;">Pause</button>
+        <button id="restartBtn" style="display:none;">Restart</button>
+    </div>
+    
+    <!-- Pause Modal -->
+    <div id="pauseModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+        <div style="background:#222; padding:30px; border-radius:10px; text-align:center;">
+            <h2>Game Paused</h2>
+            <button id="resumeBtn">Resume</button>
+        </div>
+    </div>
+    
+    <!-- Game Over Modal -->
+    <div id="gameOverPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center;">
+        <div style="background:#222; padding:40px; border-radius:10px; text-align:center;">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Completed Text: <span id="completedText">None</span></p>
+            <div style="margin-top:20px;">
+                <button id="playAgainBtn">Play Again</button>
+                <button id="closePopupBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load game scripts -->
+    <script src="snake-core.js"></script>
+    <script src="word-learning-mode.js"></script>
+    <script src="game-controls.js"></script>
+    
+    <script>
+        // Simple test initialization
+        let game, controls;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Initializing game...');
+            
+            // Create game instance
+            game = new WordLearningMode('gameCanvas', 'score');
+            console.log('Game created:', game);
+            
+            // Set some test words
+            game.setWords('hello world test game');
+            console.log('Words set');
+            
+            // Create controls manager
+            controls = new GameControls(game);
+            console.log('Controls created:', controls);
+            
+            // Initialize everything
+            controls.initialize();
+            console.log('Game initialized successfully!');
+        });
+    </script>
+</body>
+</html>
