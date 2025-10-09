@@ -240,8 +240,15 @@
                 ctx.fillText(foodLetters[i].letter, foodLetters[i].pos.x*CELL_SIZE+CELL_SIZE/2, foodLetters[i].pos.y*CELL_SIZE+CELL_SIZE/2);
             }
         }
-        ctx.fillStyle = '#00ff88';
+        // Draw snake with red head and green body
         snake.forEach((s,i)=>{
+            if (i === 0) {
+                // Head is red
+                ctx.fillStyle = '#ff4444';
+            } else {
+                // Body is green
+                ctx.fillStyle = '#00ff88';
+            }
             ctx.fillRect(s.x*CELL_SIZE+1, s.y*CELL_SIZE+1, CELL_SIZE-2, CELL_SIZE-2);
         });
         ctx.globalAlpha = 1;
