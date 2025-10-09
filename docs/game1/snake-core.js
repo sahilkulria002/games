@@ -139,9 +139,15 @@ class SnakeGameCore {
         this.ctx.fillStyle = '#111';
         this.ctx.fillRect(0, 0, this.GRID_SIZE*this.CELL_SIZE, this.GRID_SIZE*this.CELL_SIZE);
         
-        // Draw snake
-        this.ctx.fillStyle = '#00ff88';
-        this.snake.forEach((s) => {
+        // Draw snake with red head and green body
+        this.snake.forEach((s, index) => {
+            if (index === 0) {
+                // Head is red
+                this.ctx.fillStyle = '#ff4444';
+            } else {
+                // Body is green
+                this.ctx.fillStyle = '#00ff88';
+            }
             this.ctx.fillRect(s.x*this.CELL_SIZE+1, s.y*this.CELL_SIZE+1, this.CELL_SIZE-2, this.CELL_SIZE-2);
         });
         
