@@ -1,12 +1,22 @@
-# Advanced Snake Game 🐍
+# Word Learning Games Collection 🎮
 
-An advanced, web-based Snake game featuring smooth movement, mouse control, shooting mechanics, and exciting special effects!
+A collection of word-based learning games with integrated vocabulary system and progressive difficulty levels.
 
 ## Features
 
 ### 🎮 Game Modes
 - **Classic Snake**: Traditional arrow-key controlled snake game
 - **Smooth Snake Shooter**: Advanced mouse-controlled snake with shooting mechanics
+
+### 📚 Common Words System
+- **Unified Vocabulary**: All games use a shared word database (`docs/common-words.js`)
+- **Progressive Difficulty**: Words organized by length (3-10 letters)
+- **Multiple Word Lists**: 
+  - `wordsByLength`: Organized by word length for spelling games
+  - `sentencesByDifficulty`: Easy, medium, hard sentences for comprehension games
+  - `sentencesByLevel`: Progressive sentences for maze/adventure games
+  - `commonPhrases`: Extended text passages for story-based games
+- **Easy Integration**: Simple import system for all games to access shared vocabulary
 
 ### ✨ Advanced Features
 - **Smooth Movement**: Non-pixelated, fluid snake movement

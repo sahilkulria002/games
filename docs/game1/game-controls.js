@@ -192,7 +192,18 @@ class GameControls {
         // Initialize default words for word learning mode
         const wordInput = document.getElementById('wordInput');
         if (this.game.setWords && wordInput) {
-            const val = wordInput.value.trim();
+            // Use common phrases if textarea is empty
+            let val = wordInput.value.trim();
+            if (!val && window.CommonWordsLibrary && window.CommonWordsLibrary.commonPhrases) {
+                val = window.CommonWordsLibrary.commonPhrases.join(' ');
+                wordInput.value = val;
+                console.log('Using common phrases for snake game');
+            } else if (!val) {
+                // Fallback text if common words library is not available
+                val = 'My name is John. I am a student of Greenwood High School. I live in a peaceful area surrounded by nature and kind people who always encourage me to study hard and do something great in life. I have been deeply interested in science and technology. I love learning how things work — from tiny machines to giant rockets. My biggest dream is to become a great scientist in the field of space research. I want to create new inventions that can help people explore other planets and make life better for everyone on Earth. I believe that hard work, discipline, and curiosity are the most important things a student should have. I always try to learn new things every day, whether in school or at home, and I enjoy doing small science projects that make me think creatively. In the future, I wish to work with brilliant scientists and build machines that can go beyond our solar system. My goal is not only to gain knowledge but also to use it for the benefit of humanity and to make my country proud.';
+                wordInput.value = val;
+                console.log('Using fallback text for snake game');
+            }
             this.game.setWords(val);
         }
         

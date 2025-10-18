@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Maze - Game 4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0a2a, #2a0a3a, #3a0a1a);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Navigation */
+        .navigation {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #4a3a5a, #6a3a7a);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #6a5a7a, #8a5a9a);
+            transform: translateY(-1px);
+        }
+        
+        .nav-btn.current {
+            background: linear-gradient(45deg, #7a4a8a, #9a4aaa);
+        }
+        
+        /* Game Container */
+        .game-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Game Area */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            margin: 0 320px; /* Equal space on both sides */
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .game-stats {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-label {
+            color: #c0c0ff;
+        }
+        
+        .stat-value {
+            color: #fff;
+            background: linear-gradient(45deg, #4a4a7a, #6a4a9a);
+            padding: 4px 12px;
+            border-radius: 15px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        /* Maze Container */
+        .maze-container {
+            position: relative;
+            border: 3px solid #8a4a9a;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            box-shadow: 0 8px 32px rgba(138, 74, 154, 0.3);
+            overflow: hidden;
+        }
+        
+        #mazeCanvas {
+            display: block;
+            background: transparent;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, #3a3a5a, #5a3a7a);
+            padding: 20px 25px;
+            border-radius: 20px;
+            border: 2px solid #7a4a9a;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 280px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .sentence-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .sentence-title {
+            color: #c0c0ff;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .sentence-text {
+            background: linear-gradient(45deg, #5a4a7a, #7a4a9a);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            letter-spacing: 3px;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .sentence-progress {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.9rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        #targetLetter {
+            font-size: 1.3rem;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .control-hint {
+            color: #8a8aaa;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn.primary {
+            background: linear-gradient(45deg, #7a4a9a, #9a4aaa);
+        }
+        
+        .btn.primary:hover {
+            background: linear-gradient(45deg, #9a6aaa, #ba6aca);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(138, 74, 154, 0.4);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(45deg, #5a5a7a, #7a5a9a);
+        }
+        
+        .btn.secondary:hover {
+            background: linear-gradient(45deg, #7a7a9a, #9a7aba);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Instructions Panel */
+        .instructions {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 280px;
+            background: linear-gradient(45deg, #3a3a5a, #5a3a7a);
+            border: 2px solid #7a4a9a;
+            border-radius: 20px;
+            padding: 20px 25px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .instructions h4 {
+            margin: 0 0 10px 0;
+            color: #ff9acd;
+            font-size: 1.1rem;
+        }
+        
+        .instructions ul {
+            margin: 8px 0;
+            padding-left: 18px;
+        }
+        
+        .instructions li {
+            margin-bottom: 4px;
+            color: #d0d0ff;
+        }
+        
+        .challenge-indicator {
+            background: linear-gradient(45deg, #ff6b9d, #c44569);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+        
+        /* Game Over Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #3a3a5a, #5a3a7a);
+            border: 3px solid #8a4a9a;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        
+        .modal h2 {
+            color: #ff9acd;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .modal p {
+            color: #d0d0ff;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .game-area {
+                margin: 0;
+            }
+            
+            .control-panel {
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                margin-bottom: 20px;
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .instructions {
+                position: relative;
+                top: auto;
+                right: auto;
+                transform: none;
+                margin-top: 20px;
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .instructions {
+                position: relative;
+                top: auto;
+                right: auto;
+                transform: none;
+                width: 90%;
+                margin: 10px auto;
+                max-width: none;
+            }
+            
+            .control-panel {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                transform: none;
+                margin-top: 20px;
+                min-width: auto;
+                width: 90%;
+            }
+            
+            .word-input-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .word-challenge {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .navigation {
+                position: relative;
+                top: auto;
+                left: auto;
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+        }
+        
+        /* Animation classes */
+        .correct-word {
+            animation: correctFlash 0.5s ease;
+        }
+        
+        .wrong-word {
+            animation: wrongShake 0.5s ease;
+        }
+        
+        @keyframes correctFlash {
+            0%, 100% { background: linear-gradient(45deg, #2a2a3a, #3a2a4a); }
+            50% { background: linear-gradient(45deg, #2a5a2a, #3a7a3a); }
+        }
+        
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="navigation">
+        <a href="../index.html" class="nav-btn">🏠 Home</a>
+        <a href="../game1/index.html" class="nav-btn">🐍 Game 1</a>
+        <a href="../game2/index.html" class="nav-btn">⬇ Game 2</a>
+        <a href="../game3/index.html" class="nav-btn">🧠 Game 3</a>
+        <span class="nav-btn current">🎯 Game 4</span>
+    </div>
+    
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Game Header -->
+            <div class="game-header">
+                <div class="game-title">Word Maze</div>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Level:</span>
+                        <span class="stat-value" id="level">1</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Score:</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Time:</span>
+                        <span class="stat-value" id="time">0:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Maze Container -->
+            <div class="maze-container">
+                <canvas id="mazeCanvas" width="600" height="450"></canvas>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="sentence-display">
+                <div class="sentence-title">Complete the Sentence:</div>
+                <div class="sentence-text" id="sentenceText">WIN THE GAME</div>
+                <div class="sentence-progress" id="sentenceProgress">Find: <span id="targetLetter">W</span></div>
+            </div>
+            <div class="game-controls">
+                <button class="btn primary" id="startBtn">Start Game</button>
+                <button class="btn secondary" id="pauseBtn" style="display:none;">Pause</button>
+                <button class="btn secondary" id="restartBtn" style="display:none;">Restart</button>
+            </div>
+            <div class="control-hint">Use WASD or Arrow Keys to move</div>
+        </div>
+    </div>
+    
+    <!-- Instructions Panel -->
+    <div class="instructions">
+        <h4>🎯 How to Play</h4>
+        <ul>
+            <li><strong>Goal:</strong> Complete the sentence by collecting letters in order</li>
+            <li><strong>Movement:</strong> Use WASD or Arrow Keys to navigate</li>
+            <li><strong>Collect:</strong> Touch the glowing target letter to collect it</li>
+            <li><strong>Strategy:</strong> Letters become passable paths once collected</li>
+        </ul>
+        
+        <div class="challenge-indicator">
+            Type words to move!
+        </div>
+        
+        <h4>🏆 Scoring</h4>
+        <ul>
+            <li>Correct word: +10 points</li>
+            <li>Word token: +25 points</li>
+            <li>Level complete: +100 points</li>
+            <li>Speed bonus: up to +50 points</li>
+        </ul>
+    </div>
+    
+    <!-- Game Over Modal -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Game Over!</h2>
+            <p id="modalMessage">Your final score: 0</p>
+            <div class="game-controls">
+                <button class="btn primary" onclick="restartGame()">Play Again</button>
+                <button class="btn secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load Game Scripts -->
+    <script src="../common-words.js"></script>
+    <script src="word-maze-game.js"></script>
+    <script src="maze-generator.js"></script>
+    <script src="game-controls.js"></script>
+    
+    <script>
+        // Initialize the Word Maze game
+        let game, controls;
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            // Create game instance
+            game = new WordMazeGame('mazeCanvas');
+            
+            // Create controls manager
+            controls = new WordMazeControls(game);
+            
+            // Make globally accessible
+            window.game = game;
+            window.controls = controls;
+            
+            // Initialize everything
+            controls.initialize();
+            
+            // Auto-start the game
+            controls.startGame();
+        });
+        
+        // Global functions for modal
+        function restartGame() {
+            closeModal();
+            controls.restartGame();
+        }
+        
+        function closeModal() {
+            document.getElementById('gameOverModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

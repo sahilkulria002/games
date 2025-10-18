@@ -58,48 +58,56 @@ let wordsPerLength = {
     3: 5, 4: 5, 5: 5, 6: 5, 7: 5, 8: 5, 9: 5, 10: 5
 }; // Default 5 words for each length
 
-// Word lists organized by length
-
-const wordsByLength = {
-  3: ['CAT', 'DOG', 'SUN', 'CAR', 'BED', 'CUP', 'HAT', 'PEN', 'BAG', 'EGG', 'BOX', 'KEY', 'MAP', 'NET', 'OWL',
-      'ANT', 'COW', 'FAN', 'JAM', 'LIP', 'POT', 'TOP', 'JAR', 'LOG', 'MAT', 'NAP', 'BAT', 'CAP', 'BUS', 'RED',
-      'TOY', 'PAN', 'SKY', 'WEB', 'FOX', 'RAT', 'TAP', 'MIX', 'ICE', 'ZIP', 'RUN', 'FUN', 'PIG', 'HEN', 'ROW', 'TAG', 'SIT'],
-  
-  4: ['BOOK', 'FISH', 'TREE', 'DOOR', 'CAKE', 'BALL', 'MOON', 'STAR', 'BIRD', 'DUCK', 'FROG', 'KITE', 'LAMP', 'TENT',
-      'CORN', 'GOLD', 'LION', 'NOTE', 'GAME', 'RAIN', 'DESK', 'LEAF', 'MILK', 'SAND', 'JUMP', 'WIND', 'FIRE', 'ROCK', 'SNOW', 'FARM',
-      'RING', 'WALL', 'SOAP', 'FACE', 'SHIP', 'COIN', 'SEED', 'ROAD', 'WAVE', 'POND', 'TOOL', 'HILL', 'FLAG', 'BEAR', 'ROPE', 'TIME', 'KING', 'HAND'],
-  
-  5: ['HOUSE', 'TRAIN', 'APPLE', 'HORSE', 'BOOKS', 'CHAIR', 'MUSIC', 'PHONE', 'WATER', 'LIGHT', 'BREAD', 'CLOUD', 'DREAM', 'GRASS',
-      'RIVER', 'STONE', 'HEART', 'TABLE', 'PLANT', 'STARS', 'TIGER', 'SHIRT', 'SHEEP', 'BRUSH', 'CLOCK', 'FRUIT', 'SMILE', 'SWEET', 'TRUCK',
-      'SNAKE', 'CRANE', 'PLANE', 'CANDY', 'GHOST', 'LEAFY', 'EARTH', 'QUEEN', 'CROWN', 'TOAST', 'DANCE', 'PIZZA', 'BEACH', 'FRYER', 'RADIO',
-      'NURSE', 'POINT', 'CRISP', 'CHEER', 'GUARD', 'BRAVE'],
-  
-  6: ['SCHOOL', 'FLOWER', 'FRIEND', 'ORANGE', 'YELLOW', 'PURPLE', 'GARDEN', 'ANIMAL', 'PARENT', 'SISTER', 'FAMILY', 'COOKIE', 'BUBBLE', 'CIRCLE',
-      'MONKEY', 'ROCKET', 'CASTLE', 'TURTLE', 'SPRING', 'WINDOW', 'BUTTON', 'MARKET', 'PLANET', 'STREAM', 'BANANA', 'CAMERA', 'JUNGLE', 'SQUARE',
-      'POCKET', 'AUTHOR', 'DOCTOR', 'FARMER', 'TONGUE', 'MONDAY', 'FIGURE', 'NATURE', 'SPIDER', 'WEAPON', 'LUNCHY', 'WINNER', 'BRIDGE', 'CAMPER',
-      'WINTER', 'BRIGHT', 'COFFEE', 'CHERRY', 'SAILOR', 'ROYALY'],
-  
-  7: ['RAINBOW', 'BEDROOM', 'PICTURE', 'COOKING', 'READING', 'SINGING', 'DANCING', 'MORNING', 'EVENING', 'PENGUIN', 'CHICKEN', 'BALLOON', 'KITCHEN', 'LIBRARY',
-      'CAPTAIN', 'GARDNER', 'JOURNEY', 'TEACHER', 'MESSAGE', 'COUNTRY', 'CLOTHES', 'STUDENT', 'FLOWERS', 'HUNTERS', 'SOLDIER', 'DRAWING', 'PRINTER',
-      'CHAPTER', 'PACKING', 'ANOTHER', 'ANTIQUE', 'FACTORY', 'WALKING', 'HELPING', 'BOTTLES', 'SHOOTER', 'SPARKLE', 'SPECIAL', 'LOOKING', 'RUNNING',
-      'CLEANER', 'VILLAGE', 'OUTDOOR', 'MACHINE', 'MONSTER', 'TICKING', 'LANDING'],
-  
-  8: ['ELEPHANT', 'COMPUTER', 'SANDWICH', 'BIRTHDAY', 'MOUNTAIN', 'PRINCESS', 'SWIMMING', 'CHILDREN', 'SPELLING', 'DINOSAUR', 'VACATION', 'AIRPLANE', 'LUNCHBOX', 'BACKPACK',
-      'BASEBALL', 'CAMPFIRE', 'NOTEBOOK', 'HOSPITAL', 'CARNIVAL', 'TEACHERS', 'STRONGER', 'BUILDING', 'BICYCLES', 'RAINCOAT', 'BLUEBIRD', 'LANDSCAP', 'PASSWORD',
-      'POPCORNN', 'VOLCANOE', 'SEASHELL', 'FOOTBALL', 'SUNSHINE', 'SNOWBALL', 'PLAYTIME', 'FARMYARD', 'WATERFAL', 'TREASURE', 'SUNFLOWR', 'PAINTING',
-      'LADYBIRD', 'STARFISH', 'MARATHON', 'EARRINGS', 'CATCHING', 'SHOOTING', 'GROWINGS', 'STRANGER'],
-  
-  9: ['BUTTERFLY', 'ADVENTURE', 'CELEBRATE', 'CHRISTMAS', 'CLASSROOM', 'FANTASTIC', 'FIREWORKS', 'HALLOWEEN', 'PAINTBRUSH', 'SNOWFLAKE', 'TELEPHONE', 'WONDERFUL', 'CROCODILE', 'CHOCOLATE',
-      'DISCOVERY', 'NEWSPAPER', 'NOTEBOOKS', 'LIGHTNING', 'DECORATED', 'IMPORTANT', 'TREASURED', 'UNDERWATER', 'INVENTION', 'STORYBOOK', 'PINEAPPLE',
-      'BEAUTIFUL', 'EXCITINGLY', 'LANDSCAPE', 'DETECTIVE', 'HOMEWORKS', 'STRAWBERRY', 'CURIOSITY', 'DIRECTION', 'ADORABLES', 'PLAYGROUND', 'LEADERSHIP',
-      'CLOUDSCAPE', 'DEVELOPER', 'ORIGAMIART', 'MOTIONING', 'RAINSTORM', 'CAMPFIRER', 'SCHOOLBUS', 'EXPLORERS', 'RAINDROPS', 'AFTERNOON', 'ECOFRIEND', 'GREENLAND'],
-  
-  10: ['BASKETBALL', 'PLAYGROUND', 'TOOTHBRUSH', 'WATERMELON', 'SKATEBOARD', 'SPACECRAFT', 'TYPEWRITER', 'MOTORCYCLE', 'SUNGLASSES', 'CALCULATOR',
-       'TRAMPOLINE', 'CENTIPEDE', 'TABLESPOON', 'VOLLEYBALL', 'TEMPERATURE', 'MICROPHONE', 'BINOCULARS', 'CATERPILLA', 'STORYTELLR', 'FIREFIGHTR',
-       'LIGHTHOUSE', 'FRIENDSHIP', 'HOVERBOARD', 'BUTTERKNFE', 'ADVENTURES', 'SCHOOLBELL', 'COMBINATION', 'APPLICATION', 'ENVIRONMENT', 'APPRECIATE',
-       'EXPERIMENT', 'SCIENTIFIC', 'ANIMATIONX', 'SUPERPOWER', 'WATERFALLS', 'DECORATION', 'INSTRUMENT', 'INNOVATION', 'MAGNIFYING', 'TELESCOPEE',
-       'DISCIPLINE', 'CELEBRATION', 'ASTRONOMER', 'ELECTRICITY', 'MICROSCOPE', 'EXPLORATION', 'OBSERVATION', 'INVESTIGATE', 'SPACESHIPX', 'DISCOVERYY']
-};
+// Word lists organized by length - Try to use common words library, fallback to local
+let wordsByLength;
+if (typeof window !== 'undefined' && window.CommonWordsLibrary && window.CommonWordsLibrary.wordsByLength) {
+    // Use common words library
+    wordsByLength = window.CommonWordsLibrary.wordsByLength;
+    console.log('Using common words library');
+} else {
+    // Fallback to local words
+    wordsByLength = {
+      3: ['CAT', 'DOG', 'SUN', 'CAR', 'BED', 'CUP', 'HAT', 'PEN', 'BAG', 'EGG', 'BOX', 'KEY', 'MAP', 'NET', 'OWL',
+          'ANT', 'COW', 'FAN', 'JAM', 'LIP', 'POT', 'TOP', 'JAR', 'LOG', 'MAT', 'NAP', 'BAT', 'CAP', 'BUS', 'RED',
+          'TOY', 'PAN', 'SKY', 'WEB', 'FOX', 'RAT', 'TAP', 'MIX', 'ICE', 'ZIP', 'RUN', 'FUN', 'PIG', 'HEN', 'ROW', 'TAG', 'SIT'],
+      
+      4: ['BOOK', 'FISH', 'TREE', 'DOOR', 'CAKE', 'BALL', 'MOON', 'STAR', 'BIRD', 'DUCK', 'FROG', 'KITE', 'LAMP', 'TENT',
+          'CORN', 'GOLD', 'LION', 'NOTE', 'GAME', 'RAIN', 'DESK', 'LEAF', 'MILK', 'SAND', 'JUMP', 'WIND', 'FIRE', 'ROCK', 'SNOW', 'FARM',
+          'RING', 'WALL', 'SOAP', 'FACE', 'SHIP', 'COIN', 'SEED', 'ROAD', 'WAVE', 'POND', 'TOOL', 'HILL', 'FLAG', 'BEAR', 'ROPE', 'TIME', 'KING', 'HAND'],
+      
+      5: ['HOUSE', 'TRAIN', 'APPLE', 'HORSE', 'BOOKS', 'CHAIR', 'MUSIC', 'PHONE', 'WATER', 'LIGHT', 'BREAD', 'CLOUD', 'DREAM', 'GRASS',
+          'RIVER', 'STONE', 'HEART', 'TABLE', 'PLANT', 'STARS', 'TIGER', 'SHIRT', 'SHEEP', 'BRUSH', 'CLOCK', 'FRUIT', 'SMILE', 'SWEET', 'TRUCK',
+          'SNAKE', 'CRANE', 'PLANE', 'CANDY', 'GHOST', 'LEAFY', 'EARTH', 'QUEEN', 'CROWN', 'TOAST', 'DANCE', 'PIZZA', 'BEACH', 'FRYER', 'RADIO',
+          'NURSE', 'POINT', 'CRISP', 'CHEER', 'GUARD', 'BRAVE'],
+      
+      6: ['SCHOOL', 'FLOWER', 'FRIEND', 'ORANGE', 'YELLOW', 'PURPLE', 'GARDEN', 'ANIMAL', 'PARENT', 'SISTER', 'FAMILY', 'COOKIE', 'BUBBLE', 'CIRCLE',
+          'MONKEY', 'ROCKET', 'CASTLE', 'TURTLE', 'SPRING', 'WINDOW', 'BUTTON', 'MARKET', 'PLANET', 'STREAM', 'BANANA', 'CAMERA', 'JUNGLE', 'SQUARE',
+          'POCKET', 'AUTHOR', 'DOCTOR', 'FARMER', 'TONGUE', 'MONDAY', 'FIGURE', 'NATURE', 'SPIDER', 'WEAPON', 'LUNCHY', 'WINNER', 'BRIDGE', 'CAMPER',
+          'WINTER', 'BRIGHT', 'COFFEE', 'CHERRY', 'SAILOR', 'ROYALY'],
+      
+      7: ['RAINBOW', 'BEDROOM', 'PICTURE', 'COOKING', 'READING', 'SINGING', 'DANCING', 'MORNING', 'EVENING', 'PENGUIN', 'CHICKEN', 'BALLOON', 'KITCHEN', 'LIBRARY',
+          'CAPTAIN', 'GARDNER', 'JOURNEY', 'TEACHER', 'MESSAGE', 'COUNTRY', 'CLOTHES', 'STUDENT', 'FLOWERS', 'HUNTERS', 'SOLDIER', 'DRAWING', 'PRINTER',
+          'CHAPTER', 'PACKING', 'ANOTHER', 'ANTIQUE', 'FACTORY', 'WALKING', 'HELPING', 'BOTTLES', 'SHOOTER', 'SPARKLE', 'SPECIAL', 'LOOKING', 'RUNNING',
+          'CLEANER', 'VILLAGE', 'OUTDOOR', 'MACHINE', 'MONSTER', 'TICKING', 'LANDING'],
+      
+      8: ['ELEPHANT', 'COMPUTER', 'SANDWICH', 'BIRTHDAY', 'MOUNTAIN', 'PRINCESS', 'SWIMMING', 'CHILDREN', 'SPELLING', 'DINOSAUR', 'VACATION', 'AIRPLANE', 'LUNCHBOX', 'BACKPACK',
+          'BASEBALL', 'CAMPFIRE', 'NOTEBOOK', 'HOSPITAL', 'CARNIVAL', 'TEACHERS', 'STRONGER', 'BUILDING', 'BICYCLES', 'RAINCOAT', 'BLUEBIRD', 'LANDSCAP', 'PASSWORD',
+          'POPCORNN', 'VOLCANOE', 'SEASHELL', 'FOOTBALL', 'SUNSHINE', 'SNOWBALL', 'PLAYTIME', 'FARMYARD', 'WATERFAL', 'TREASURE', 'SUNFLOWR', 'PAINTING',
+          'LADYBIRD', 'STARFISH', 'MARATHON', 'EARRINGS', 'CATCHING', 'SHOOTING', 'GROWINGS', 'STRANGER'],
+      
+      9: ['BUTTERFLY', 'ADVENTURE', 'CELEBRATE', 'CHRISTMAS', 'CLASSROOM', 'FANTASTIC', 'FIREWORKS', 'HALLOWEEN', 'PAINTBRUSH', 'SNOWFLAKE', 'TELEPHONE', 'WONDERFUL', 'CROCODILE', 'CHOCOLATE',
+          'DISCOVERY', 'NEWSPAPER', 'NOTEBOOKS', 'LIGHTNING', 'DECORATED', 'IMPORTANT', 'TREASURED', 'UNDERWATER', 'INVENTION', 'STORYBOOK', 'PINEAPPLE',
+          'BEAUTIFUL', 'EXCITINGLY', 'LANDSCAPE', 'DETECTIVE', 'HOMEWORKS', 'STRAWBERRY', 'CURIOSITY', 'DIRECTION', 'ADORABLES', 'PLAYGROUND', 'LEADERSHIP',
+          'CLOUDSCAPE', 'DEVELOPER', 'ORIGAMIART', 'MOTIONING', 'RAINSTORM', 'CAMPFIRER', 'SCHOOLBUS', 'EXPLORERS', 'RAINDROPS', 'AFTERNOON', 'ECOFRIEND', 'GREENLAND'],
+      
+      10: ['BASKETBALL', 'PLAYGROUND', 'TOOTHBRUSH', 'WATERMELON', 'SKATEBOARD', 'SPACECRAFT', 'TYPEWRITER', 'MOTORCYCLE', 'SUNGLASSES', 'CALCULATOR',
+           'TRAMPOLINE', 'CENTIPEDE', 'TABLESPOON', 'VOLLEYBALL', 'TEMPERATURE', 'MICROPHONE', 'BINOCULARS', 'CATERPILLA', 'STORYTELLR', 'FIREFIGHTR',
+           'LIGHTHOUSE', 'FRIENDSHIP', 'HOVERBOARD', 'BUTTERKNFE', 'ADVENTURES', 'SCHOOLBELL', 'COMBINATION', 'APPLICATION', 'ENVIRONMENT', 'APPRECIATE',
+           'EXPERIMENT', 'SCIENTIFIC', 'ANIMATIONX', 'SUPERPOWER', 'WATERFALLS', 'DECORATION', 'INSTRUMENT', 'INNOVATION', 'MAGNIFYING', 'TELESCOPEE',
+           'DISCIPLINE', 'CELEBRATION', 'ASTRONOMER', 'ELECTRICITY', 'MICROSCOPE', 'EXPLORATION', 'OBSERVATION', 'INVESTIGATE', 'SPACESHIPX', 'DISCOVERYY']
+    };
+    console.log('Using fallback words');
+}
 
 
 // DOM elements
@@ -1890,27 +1898,27 @@ function extractWordsFromText(text) {
         .filter(word => /^[A-Z]+$/.test(word)); // Only pure letter words
     
     // Group words by length
-    const wordsByLength = {};
+    const extractedWordsByLength = {};
     for (let length = 3; length <= 10; length++) {
-        wordsByLength[length] = [];
+        extractedWordsByLength[length] = [];
     }
     
     // Add words to appropriate length groups (avoid duplicates)
     words.forEach(word => {
         const length = word.length;
-        if (!wordsByLength[length].includes(word)) {
-            wordsByLength[length].push(word);
+        if (!extractedWordsByLength[length].includes(word)) {
+            extractedWordsByLength[length].push(word);
         }
     });
     
     // Remove empty length categories
-    Object.keys(wordsByLength).forEach(length => {
-        if (wordsByLength[length].length === 0) {
-            delete wordsByLength[length];
+    Object.keys(extractedWordsByLength).forEach(length => {
+        if (extractedWordsByLength[length].length === 0) {
+            delete extractedWordsByLength[length];
         }
     });
     
-    return wordsByLength;
+    return extractedWordsByLength;
 }
 
 function showTextStatistics(extractedWords) {

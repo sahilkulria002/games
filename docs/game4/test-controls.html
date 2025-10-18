@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Controls</title>
+</head>
+<body>
+    <h1>Control Test</h1>
+    <div id="output"></div>
+    <p>Press WASD or arrow keys</p>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        document.addEventListener('keydown', (e) => {
+            output.innerHTML += `<div>Key pressed: ${e.key} at ${new Date().toLocaleTimeString()}</div>`;
+            output.scrollTop = output.scrollHeight;
+        });
+    </script>
+</body>
+</html>

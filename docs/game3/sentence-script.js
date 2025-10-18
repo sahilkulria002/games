@@ -44,59 +44,21 @@ let progressiveConfig = {
 };
 
 // Sentence collections organized by difficulty
-const sentencesByDifficulty = {
-    easy: [
-        "The cat sat on the mat.",
-        "Birds fly in the sky.",
-        "She loves to read books.",
-        "The sun is very bright.",
-        "We play games together.",
-        "Dogs are loyal friends.",
-        "Rain falls from clouds.",
-        "Children laugh and play.",
-        "Flowers bloom in spring.",
-        "Music makes me happy.",
-        "The moon shines at night.",
-        "Fish swim in water.",
-        "Trees grow very tall.",
-        "Books contain many stories.",
-        "Friends help each other."
-    ],
-    medium: [
-        "The beautiful butterfly landed gently on the colorful flower.",
-        "Students study hard every day to achieve their dreams.",
-        "The old lighthouse guided ships safely through the storm.",
-        "Grandma bakes delicious cookies for her loving grandchildren.",
-        "The brave firefighter rescued the cat from the tree.",
-        "Children build sandcastles on the sunny beach vacation.",
-        "The talented musician played beautiful melodies at the concert.",
-        "Fresh vegetables grow in the farmer's organic garden.",
-        "The curious scientist discovered a new species yesterday.",
-        "Happy families gather together for traditional holiday celebrations.",
-        "The skilled artist painted a masterpiece in her studio.",
-        "Adventure seekers climb mountains to reach the summit.",
-        "The gentle nurse cared for patients with kindness.",
-        "Wild animals roam freely in the natural habitat.",
-        "The dedicated teacher inspired students to learn more."
-    ],
-    hard: [
-        "The magnificent aurora borealis danced gracefully across the star-filled Arctic sky last evening.",
-        "Environmental scientists are conducting comprehensive research to understand the complex effects of climate change.",
-        "The ancient civilization left behind mysterious artifacts that continue to puzzle modern archaeologists today.",
-        "Professional athletes dedicate countless hours to rigorous training in order to achieve peak performance levels.",
-        "The innovative technology company developed revolutionary software that transformed how people communicate with each other.",
-        "Experienced mountaineers carefully planned their challenging expedition to conquer the treacherous peaks of the Himalayas.",
-        "The renowned chef meticulously prepared an exquisite multi-course meal using locally sourced organic ingredients.",
-        "Marine biologists discovered fascinating new species living in the deepest trenches of the ocean floor.",
-        "The accomplished symphony orchestra performed Beethoven's masterpiece with extraordinary precision and emotional depth.",
-        "International diplomats worked tirelessly through the night to negotiate a peaceful resolution to the conflict.",
-        "The cutting-edge medical research facility is developing groundbreaking treatments for previously incurable diseases.",
-        "Passionate educators are implementing innovative teaching methods to engage students in meaningful learning experiences.",
-        "The historic preservation society successfully restored the centuries-old cathedral to its original architectural glory.",
-        "Advanced artificial intelligence systems are revolutionizing industries and transforming the way businesses operate.",
-        "Dedicated conservation efforts have helped protect endangered species from extinction in wildlife reserves worldwide."
-    ]
-};
+// Use sentences from common words library (loaded from common-words.js)
+// Check if CommonWords is available and fallback if not
+let sentencesByDifficulty;
+if (window.CommonWordsLibrary && window.CommonWordsLibrary.sentencesByDifficulty) {
+    sentencesByDifficulty = window.CommonWordsLibrary.sentencesByDifficulty;
+    console.log('Using common sentences library');
+} else {
+    // Fallback sentences in case common-words.js fails to load
+    sentencesByDifficulty = {
+        easy: ['THE CAT RAN FAST', 'BIRDS FLY HIGH', 'SUN IS BRIGHT'],
+        medium: ['THE BEAUTIFUL GARDEN HAS MANY FLOWERS', 'STUDENTS LEARN EVERY DAY'],
+        hard: ['THE MAGNIFICENT AURORA DANCED ACROSS THE SKY']
+    };
+    console.warn('Common words library not found, using fallback sentences');
+}
 
 // DOM elements
 const displayTimeSlider = document.getElementById('display-time');
