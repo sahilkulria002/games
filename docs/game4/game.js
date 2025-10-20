@@ -305,6 +305,13 @@ class BrainChainCalculator extends GameMode {
                 }
             });
         }
+        
+        // Handle window resize for mobile button
+        window.addEventListener('resize', () => {
+            if (this.equations.length > 0) {
+                this.updateMobileActionButton();
+            }
+        });
     }
 
     updateStepsBack(newStepsBack) {
@@ -343,6 +350,9 @@ class BrainChainCalculator extends GameMode {
         this.engine.stopTimer();
         this.engine.gameState.timeElapsed = 0;
         this.engine.updateTimer();
+        
+        // Remove mobile action button
+        this.removeMobileActionButton();
         
         // Reset game state
         this.equations = [];
@@ -457,6 +467,9 @@ class BrainChainCalculator extends GameMode {
         `;
         
         container.appendChild(rowDiv);
+        
+        // Add mobile action button for small screens
+        this.updateMobileActionButton();
         
         // Hide expressions of previous rows (except current one)
         this.hideOldExpressions();
@@ -656,6 +669,43 @@ class BrainChainCalculator extends GameMode {
         
         // Start with first row
         this.createNewRow();
+    }
+
+    updateMobileActionButton() {
+        // Remove existing mobile button
+        const existingBtn = document.querySelector('.mobile-action-btn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+        
+        // Only add on mobile screens
+        if (window.innerWidth <= 480) {
+            const currentRow = this.equations[this.equations.length - 1];
+            if (currentRow) {
+                const button = document.createElement('button');
+                button.className = 'mobile-action-btn';
+                
+                if (currentRow.id < this.stepsBack) {
+                    // Next button
+                    button.innerHTML = '→';
+                    button.onclick = () => this.handleNext(currentRow.id);
+                } else {
+                    // Submit button
+                    button.innerHTML = '✓';
+                    button.className += ' submit-btn';
+                    button.onclick = () => this.handleSubmit(currentRow.id);
+                }
+                
+                document.body.appendChild(button);
+            }
+        }
+    }
+
+    removeMobileActionButton() {
+        const existingBtn = document.querySelector('.mobile-action-btn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
     }
 
     activateAnswerBox(rowId) {
