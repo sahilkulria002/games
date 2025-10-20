@@ -62,9 +62,6 @@ class GameEngine {
         
         // Start the game mode
         this.currentMode.start();
-        
-        // Start timer
-        this.startTimer();
     }
 
     resetGameState() {
@@ -207,6 +204,8 @@ class BrainChainCalculator extends GameMode {
         this.maxVisibleRows = 4;
         this.difficulty = 1;
         this.chainCount = 0;
+        this.rowsPerChain = 12; // 12 rows = 10 answered equations (since first 2 aren't answered)
+        this.stepsBack = 2; // Default steps back
     }
 
     start() {
@@ -224,25 +223,23 @@ class BrainChainCalculator extends GameMode {
                     <p class="start-description">
                         Solve equations row by row. Remember previous answers while new equations appear!
                     </p>
+                    
+                    <div class="start-settings">
+                        <label for="start-steps-selector" class="start-label">Choose Your Challenge:</label>
+                        <select id="start-steps-selector" class="start-steps-selector">
+                            <option value="1">1 Step Back - Beginner</option>
+                            <option value="2" selected>2 Steps Back - Easy</option>
+                            <option value="3">3 Steps Back - Medium</option>
+                            <option value="4">4 Steps Back - Hard</option>
+                            <option value="5">5 Steps Back - Expert</option>
+                            <option value="6">6 Steps Back - Master</option>
+                        </select>
+                    </div>
+                    
                     <button id="start-btn" class="game-btn btn-start">🚀 Start Training</button>
                 </div>
 
                 <div id="game-content" class="hidden">
-                    <div class="game-info">
-                        <div class="info-item">
-                            <span class="info-label">Difficulty:</span>
-                            <span class="info-value" id="difficulty-display">${this.difficulty}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Chains:</span>
-                            <span class="info-value" id="chain-count">0</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Current Row:</span>
-                            <span class="info-value" id="current-row">1</span>
-                        </div>
-                    </div>
-
                     <div class="equations-container" id="equations-container">
                         <!-- Equation rows will be added here dynamically -->
                     </div>
@@ -253,7 +250,9 @@ class BrainChainCalculator extends GameMode {
                             <li>Study the first equation and calculate mentally</li>
                             <li>Click "Next" to reveal more equations</li>
                             <li>When answer boxes become active, enter previous answers</li>
-                            <li>Complete chains to increase difficulty!</li>
+                            <li>Solve equations by remembering answers from previous rows</li>
+                            <li>Choose your difficulty: 1-6 steps back to remember</li>
+                            <li>Complete 12 rows to finish each level!</li>
                         </ol>
                     </div>
                 </div>
@@ -262,13 +261,62 @@ class BrainChainCalculator extends GameMode {
 
         // Bind events
         this.bindEvents();
+        
+        // Initialize dropdown
+        this.initializeDropdown();
+    }
+
+    initializeDropdown() {
+        const dropdown = document.getElementById('steps-back-selector');
+        if (dropdown) {
+            dropdown.value = this.stepsBack;
+        }
     }
 
     bindEvents() {
         // Start button
         document.getElementById('start-btn').addEventListener('click', () => {
+            // Get selected difficulty from start screen
+            const startSelector = document.getElementById('start-steps-selector');
+            if (startSelector) {
+                this.stepsBack = parseInt(startSelector.value);
+                // Sync with header selector
+                const headerSelector = document.getElementById('steps-back-selector');
+                if (headerSelector) {
+                    headerSelector.value = this.stepsBack;
+                }
+            }
             this.startGame();
         });
+
+        // Steps back selector (header)
+        document.getElementById('steps-back-selector').addEventListener('change', (e) => {
+            this.updateStepsBack(parseInt(e.target.value));
+        });
+        
+        // Start screen steps selector
+        const startSelector = document.getElementById('start-steps-selector');
+        if (startSelector) {
+            startSelector.addEventListener('change', (e) => {
+                // Sync with header selector
+                const headerSelector = document.getElementById('steps-back-selector');
+                if (headerSelector) {
+                    headerSelector.value = e.target.value;
+                }
+            });
+        }
+    }
+
+    updateStepsBack(newStepsBack) {
+        // Only allow changes if game hasn't started or no rows exist
+        if (this.equations.length === 0) {
+            this.stepsBack = newStepsBack;
+            this.showFeedback(`Memory challenge set to ${newStepsBack} step${newStepsBack > 1 ? 's' : ''} back!`, 'success');
+        } else {
+            // Reset selector to current value
+            document.getElementById('steps-back-selector').value = this.stepsBack;
+            this.showFeedback('Cannot change during gameplay! Finish current level first.', 'error');
+        }
     }
 
     showStartScreen() {
@@ -283,8 +331,44 @@ class BrainChainCalculator extends GameMode {
         // Update game title
         document.getElementById('game-title').textContent = this.name;
         
+        // Start the timer now that actual gameplay begins
+        this.engine.startTimer();
+        
         // Create first equation row
         this.createNewRow();
+    }
+
+    returnToStartScreen() {
+        // Stop and reset timer
+        this.engine.stopTimer();
+        this.engine.gameState.timeElapsed = 0;
+        this.engine.updateTimer();
+        
+        // Reset game state
+        this.equations = [];
+        this.currentRowIndex = 0;
+        this.chainCount = 0;
+        this.answeredRows = 0;
+        
+        // Clear equations container
+        const container = document.getElementById('equations-container');
+        if (container) {
+            container.innerHTML = '';
+        }
+        
+        // Show start screen, hide game content
+        document.getElementById('start-screen').classList.remove('hidden');
+        document.getElementById('game-content').classList.add('hidden');
+        
+        // Reset title
+        document.getElementById('game-title').textContent = 'Brain Chain Calculator';
+        
+        // Sync selectors
+        const startSelector = document.getElementById('start-steps-selector');
+        const headerSelector = document.getElementById('steps-back-selector');
+        if (startSelector && headerSelector) {
+            startSelector.value = this.stepsBack;
+        }
     }
 
     generateEquation() {
@@ -341,14 +425,13 @@ class BrainChainCalculator extends GameMode {
         // Determine button type and state
         let buttonHtml;
         
-        if (equation.id === 0) {
-            // First row: Next button
-            buttonHtml = `<button class="row-btn btn-next" onclick="window.gameEngine.currentMode.handleNext(${equation.id})">Next →</button>`;
-        } else if (equation.id === 1) {
-            // Second row: Next button
+        // Show "Next" button for rows that don't have answer boxes (first stepsBack rows)
+        // Show "Submit" button for rows that have answer boxes (stepsBack and beyond)
+        if (equation.id < this.stepsBack) {
+            // Rows without answer boxes: Next button
             buttonHtml = `<button class="row-btn btn-next" onclick="window.gameEngine.currentMode.handleNext(${equation.id})">Next →</button>`;
         } else {
-            // Third+ rows: Submit button
+            // Rows with answer boxes: Submit button
             buttonHtml = `<button class="row-btn btn-submit" onclick="window.gameEngine.currentMode.handleSubmit(${equation.id})">Submit</button>`;
         }
         
@@ -378,18 +461,19 @@ class BrainChainCalculator extends GameMode {
         // Hide expressions of previous rows (except current one)
         this.hideOldExpressions();
         
-        // Activate answer box for the row that's 2 steps back
-        if (equation.id >= 2) {
-            this.activateAnswerBox(equation.id - 2);
+        // Activate answer box for the row that's N steps back
+        if (equation.id >= this.stepsBack) {
+            this.activateAnswerBox(equation.id - this.stepsBack);
         }
         
         // Convert previous row's Next button to inactive Submit if it exists
-        if (equation.id >= 2) {
+        if (equation.id >= this.stepsBack) {
             this.convertToInactiveSubmit(equation.id - 1);
         }
         
         // Update current row display
         document.getElementById('current-row').textContent = equation.id + 1;
+        document.getElementById('difficulty').textContent = this.stepsBack; // Show steps-back as difficulty
         
         // Scroll to show the new row if needed
         this.scrollToLatestRows();
@@ -404,28 +488,30 @@ class BrainChainCalculator extends GameMode {
     }
 
     hideOldExpressions() {
-        // Hide expressions of all rows except the latest one and the recently answered one
+        // Show expressions for: newest row + all answered rows
         this.equations.forEach((eq, index) => {
             const expressionBox = document.querySelector(`#row-${eq.id} .expression-text`);
             const expressionContainer = document.querySelector(`#row-${eq.id} .expression-box`);
             
             if (expressionBox && expressionContainer) {
-                // Show expression for: current row (latest) and recently answered row (current - 2)
-                const currentRowIndex = this.equations.length - 1;
-                const recentlyAnsweredIndex = currentRowIndex - 2;
+                const isNewestRow = index === this.equations.length - 1;
                 
-                if (index === currentRowIndex) {
-                    // Current row: always show expression
+                // Check if this row has been answered (has correct or wrong class on answer input)
+                const answerInput = document.getElementById(`answer-${eq.id}`);
+                const isAnswered = answerInput && (answerInput.classList.contains('correct') || answerInput.classList.contains('wrong'));
+                
+                if (isNewestRow) {
+                    // Newest row: always show expression (player needs to see what to calculate)
                     expressionBox.textContent = eq.expression;
                     expressionContainer.classList.remove('hidden-expression');
                     expressionContainer.classList.remove('answered-expression');
-                } else if (index === recentlyAnsweredIndex && index >= 0) {
-                    // Recently answered row: show expression with special styling
+                } else if (isAnswered) {
+                    // Answered row: show expression with answered styling
                     expressionBox.textContent = eq.expression;
                     expressionContainer.classList.remove('hidden-expression');
                     expressionContainer.classList.add('answered-expression');
                 } else {
-                    // All other rows: hide expression
+                    // Unanswered rows (including current active answer box): hide expression
                     expressionBox.textContent = '? ? ?';
                     expressionContainer.classList.add('hidden-expression');
                     expressionContainer.classList.remove('answered-expression');
@@ -457,8 +543,8 @@ class BrainChainCalculator extends GameMode {
     }
 
     handleSubmit(rowId) {
-        // Get the answer for the row that should be answered (rowId - 2)
-        const answerRowId = rowId - 2;
+        // Get the answer for the row that should be answered (rowId - stepsBack)
+        const answerRowId = rowId - this.stepsBack;
         if (answerRowId < 0) return;
         
         const answerInput = document.getElementById(`answer-${answerRowId}`);
@@ -481,7 +567,7 @@ class BrainChainCalculator extends GameMode {
 
     handleCorrectAnswer(answeredRowId, currentRowId) {
         this.showFeedback('🎉 Correct!', 'success');
-        this.engine.updateScore(10 * this.difficulty);
+        this.engine.updateScore(15 * this.difficulty); // Increased points per correct answer
         
         // Mark answer as correct
         const answerInput = document.getElementById(`answer-${answeredRowId}`);
@@ -496,8 +582,9 @@ class BrainChainCalculator extends GameMode {
         // Update expression visibility to show the answered row
         this.hideOldExpressions();
         
-        // Check if we've completed a chain (5 equations)
-        if (currentRowId >= 4) {
+        // Check if we've completed a chain (12 equations with enough answers based on steps-back)
+        const minAnswersNeeded = this.rowsPerChain - this.stepsBack;
+        if (currentRowId >= this.rowsPerChain - 1 && this.answeredRows >= minAnswersNeeded) {
             setTimeout(() => {
                 this.completeChain();
             }, 1000);
@@ -541,15 +628,15 @@ class BrainChainCalculator extends GameMode {
     }
 
     completeChain() {
-        const bonus = 50 * this.difficulty;
-        this.showFeedback(`🏆 Chain Complete! Bonus: ${bonus} points!`, 'bonus');
+        const bonus = 100 * this.difficulty; // Increased bonus for longer chains
+        const answeredCount = this.rowsPerChain - 2; // Actual equations answered
+        this.showFeedback(`🏆 Level Complete! ${answeredCount} equations solved! Bonus: ${bonus} points!`, 'bonus');
         this.engine.updateScore(bonus);
         
         // Increase difficulty and chain count
         this.difficulty = Math.min(this.difficulty + 1, 3);
         this.chainCount++;
         
-        document.getElementById('difficulty-display').textContent = this.difficulty;
         document.getElementById('chain-count').textContent = this.chainCount;
         this.engine.updateLevel(this.engine.gameState.level + 1);
         
@@ -753,8 +840,8 @@ class UIManager {
 
         // Quit button
         document.getElementById('quit-btn').addEventListener('click', () => {
-            if (confirm('Are you sure you want to quit?')) {
-                window.gameEngine.quitToModeSelection();
+            if (confirm('Return to start screen?')) {
+                window.gameEngine.currentMode.returnToStartScreen();
             }
         });
 

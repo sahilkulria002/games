@@ -34,9 +34,29 @@
                     <span class="stat-label">Time</span>
                     <span class="stat-value" id="timer">0:00</span>
                 </div>
+                <div class="stat">
+                    <span class="stat-label">Difficulty</span>
+                    <span class="stat-value" id="difficulty">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Chains</span>
+                    <span class="stat-value" id="chain-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Current Row</span>
+                    <span class="stat-value" id="current-row">1</span>
+                </div>
             </div>
         </div>
         <div class="game-controls">
+            <select id="steps-back-selector" class="steps-selector">
+                <option value="1">1 Step Back</option>
+                <option value="2" selected>2 Steps Back</option>
+                <option value="3">3 Steps Back</option>
+                <option value="4">4 Steps Back</option>
+                <option value="5">5 Steps Back</option>
+                <option value="6">6 Steps Back</option>
+            </select>
             <button id="pause-btn" class="control-btn">⏸️ Pause</button>
             <button id="quit-btn" class="control-btn">❌ Quit</button>
         </div>
