@@ -202,7 +202,9 @@ class BrainChainCalculator extends GameMode {
         this.equations = [];
         this.currentRowIndex = 0;
         this.maxVisibleRows = 4;
-        this.difficulty = 1;
+        this.difficulty = 1; // Math difficulty (1-3)
+        this.mathDifficulty = 1; // Separate math difficulty
+        this.totalRowsCreated = 0; // Track total rows for progression
         this.chainCount = 0;
         this.rowsPerChain = 12; // 12 rows = 10 answered equations (since first 2 aren't answered)
         this.stepsBack = 2; // Default steps back
@@ -225,7 +227,7 @@ class BrainChainCalculator extends GameMode {
                     </p>
                     
                     <div class="start-settings">
-                        <label for="start-steps-selector" class="start-label">Choose Your Challenge:</label>
+                        <label for="start-steps-selector" class="start-label">Memory Challenge:</label>
                         <select id="start-steps-selector" class="start-steps-selector">
                             <option value="1">1 Step Back - Beginner</option>
                             <option value="2" selected>2 Steps Back - Easy</option>
@@ -233,6 +235,15 @@ class BrainChainCalculator extends GameMode {
                             <option value="4">4 Steps Back - Hard</option>
                             <option value="5">5 Steps Back - Expert</option>
                             <option value="6">6 Steps Back - Master</option>
+                        </select>
+                    </div>
+                    
+                    <div class="start-settings">
+                        <label for="start-math-difficulty" class="start-label">Math Difficulty:</label>
+                        <select id="start-math-difficulty" class="start-steps-selector">
+                            <option value="1" selected>Easy - Small numbers (1-10)</option>
+                            <option value="2">Medium - Medium numbers (1-20)</option>
+                            <option value="3">Hard - Large numbers (1-50)</option>
                         </select>
                     </div>
                     
@@ -276,7 +287,7 @@ class BrainChainCalculator extends GameMode {
     bindEvents() {
         // Start button
         document.getElementById('start-btn').addEventListener('click', () => {
-            // Get selected difficulty from start screen
+            // Get selected memory challenge from start screen
             const startSelector = document.getElementById('start-steps-selector');
             if (startSelector) {
                 this.stepsBack = parseInt(startSelector.value);
@@ -286,6 +297,14 @@ class BrainChainCalculator extends GameMode {
                     headerSelector.value = this.stepsBack;
                 }
             }
+            
+            // Get selected math difficulty from start screen
+            const mathSelector = document.getElementById('start-math-difficulty');
+            if (mathSelector) {
+                this.mathDifficulty = parseInt(mathSelector.value);
+                this.difficulty = this.mathDifficulty; // Set initial difficulty
+            }
+            
             this.startGame();
         });
 
@@ -359,6 +378,8 @@ class BrainChainCalculator extends GameMode {
         this.currentRowIndex = 0;
         this.chainCount = 0;
         this.answeredRows = 0;
+        this.totalRowsCreated = 0; // Reset progression tracking
+        this.difficulty = 1; // Reset math difficulty
         
         // Clear equations container
         const container = document.getElementById('equations-container');
@@ -423,7 +444,27 @@ class BrainChainCalculator extends GameMode {
         };
     }
 
+    checkDifficultyProgression() {
+        // Auto-increase difficulty every 15 rows
+        if (this.totalRowsCreated > 0 && this.totalRowsCreated % 15 === 0) {
+            const oldDifficulty = this.difficulty;
+            this.difficulty = Math.min(this.difficulty + 1, 3); // Max difficulty is 3
+            
+            if (this.difficulty > oldDifficulty) {
+                this.showFeedback(`🎯 Math difficulty increased to Level ${this.difficulty}!`, 'bonus');
+                
+                // Update the difficulty display in header
+                const difficultyNames = ['', 'Easy', 'Medium', 'Hard'];
+                document.getElementById('difficulty').textContent = `${this.stepsBack} (Math: ${difficultyNames[this.difficulty]})`;
+            }
+        }
+    }
+
     createNewRow() {
+        // Track total rows and check for difficulty progression
+        this.totalRowsCreated++;
+        this.checkDifficultyProgression();
+        
         const equation = this.generateEquation();
         this.equations.push(equation);
         
@@ -486,7 +527,10 @@ class BrainChainCalculator extends GameMode {
         
         // Update current row display
         document.getElementById('current-row').textContent = equation.id + 1;
-        document.getElementById('difficulty').textContent = this.stepsBack; // Show steps-back as difficulty
+        
+        // Show both memory and math difficulty
+        const difficultyNames = ['', 'Easy', 'Medium', 'Hard'];
+        document.getElementById('difficulty').textContent = `${this.stepsBack} (Math: ${difficultyNames[this.difficulty]})`;
         
         // Scroll to show the new row if needed
         this.scrollToLatestRows();
