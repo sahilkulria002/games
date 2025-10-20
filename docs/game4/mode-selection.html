@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 4 - Mode Selection</title>
+    <link rel="stylesheet" href="mode-selection.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="navigation">
+        <button onclick="goHome()" class="nav-btn">🏠 Home</button>
+        <button onclick="goBack()" class="nav-btn">⬅️ Back</button>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <h1>Brain Training Games</h1>
+        <p class="subtitle">Choose your mental challenge</p>
+        
+        <div class="mode-grid">
+            <button class="mode-btn" onclick="startMode('brain-chain')">
+                <div class="mode-icon">🧠</div>
+                <h3>Brain Chain Calculator</h3>
+                <p>Remember previous answers while solving new equations. Train your mental math and memory!</p>
+                <div class="difficulty-indicator">
+                    <span>⭐⭐⭐</span>
+                    <small>Memory + Math</small>
+                </div>
+            </button>
+            
+            <button class="mode-btn" onclick="startMode('speed-math')">
+                <div class="mode-icon">⚡</div>
+                <h3>Speed Math</h3>
+                <p>Solve equations as fast as possible. Beat your best time and improve your calculation speed!</p>
+                <div class="difficulty-indicator">
+                    <span>⭐⭐</span>
+                    <small>Speed + Accuracy</small>
+                </div>
+            </button>
+            
+            <button class="mode-btn" onclick="startMode('pattern-memory')">
+                <div class="mode-icon">🎯</div>
+                <h3>Pattern Memory</h3>
+                <p>Remember number sequences and patterns. Challenge your short-term memory!</p>
+                <div class="difficulty-indicator">
+                    <span>⭐⭐⭐⭐</span>
+                    <small>Pure Memory</small>
+                </div>
+            </button>
+            
+            <button class="mode-btn" onclick="startMode('coming-soon')" disabled>
+                <div class="mode-icon">🚀</div>
+                <h3>More Coming Soon</h3>
+                <p>Additional brain training modes are in development. Stay tuned for more challenges!</p>
+                <div class="difficulty-indicator">
+                    <span>⭐⭐⭐⭐⭐</span>
+                    <small>Future Content</small>
+                </div>
+            </button>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat-card">
+                <h4>Games Played</h4>
+                <span id="games-played">0</span>
+            </div>
+            <div class="stat-card">
+                <h4>Best Score</h4>
+                <span id="best-score">0</span>
+            </div>
+            <div class="stat-card">
+                <h4>Time Played</h4>
+                <span id="time-played">0m</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functions
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Start specific game mode
+        function startMode(mode) {
+            if (mode === 'coming-soon') {
+                alert('This mode is coming soon! Try the Brain Chain Calculator for now.');
+                return;
+            }
+            
+            // Store selected mode in localStorage
+            localStorage.setItem('selectedGameMode', mode);
+            
+            // Navigate to game page
+            window.location.href = 'game.html';
+        }
+
+        // Load and display stats
+        function loadStats() {
+            const gamesPlayed = localStorage.getItem('game4-games-played') || 0;
+            const bestScore = localStorage.getItem('game4-best-score') || 0;
+            const timePlayed = localStorage.getItem('game4-time-played') || 0;
+            
+            document.getElementById('games-played').textContent = gamesPlayed;
+            document.getElementById('best-score').textContent = bestScore;
+            document.getElementById('time-played').textContent = Math.floor(timePlayed / 60000) + 'm';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            
+            // Add enter animation to mode buttons
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            modeButtons.forEach((btn, index) => {
+                setTimeout(() => {
+                    btn.classList.add('animate-in');
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

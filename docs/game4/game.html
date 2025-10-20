@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game 4 - Brain Training</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="navigation">
+        <button onclick="goToModeSelection()" class="nav-btn">🎮 Modes</button>
+        <button onclick="goHome()" class="nav-btn">🏠 Home</button>
+    </div>
+
+    <!-- Game UI Header -->
+    <div class="game-header" id="game-header">
+        <div class="game-info">
+            <h2 id="game-title">Brain Chain Calculator</h2>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Score</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Lives</span>
+                    <span class="stat-value" id="lives">3</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Time</span>
+                    <span class="stat-value" id="timer">0:00</span>
+                </div>
+            </div>
+        </div>
+        <div class="game-controls">
+            <button id="pause-btn" class="control-btn">⏸️ Pause</button>
+            <button id="quit-btn" class="control-btn">❌ Quit</button>
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="game-container" id="game-container">
+        <div id="game-area" class="game-area">
+            <!-- Game content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="overlay-screen hidden">
+        <div class="overlay-content">
+            <h2>🎉 Game Complete!</h2>
+            <div class="final-stats">
+                <div class="final-stat">
+                    <span class="final-label">Final Score</span>
+                    <span class="final-value" id="final-score">0</span>
+                </div>
+                <div class="final-stat">
+                    <span class="final-label">Level Reached</span>
+                    <span class="final-value" id="final-level">1</span>
+                </div>
+                <div class="final-stat">
+                    <span class="final-label">Time Played</span>
+                    <span class="final-value" id="final-time">0:00</span>
+                </div>
+            </div>
+            <div class="final-buttons">
+                <button id="play-again-btn" class="final-btn primary">🔄 Play Again</button>
+                <button id="change-mode-btn" class="final-btn secondary">🎮 Change Mode</button>
+                <button id="main-menu-btn" class="final-btn secondary">🏠 Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Screen -->
+    <div id="pause-screen" class="overlay-screen hidden">
+        <div class="overlay-content">
+            <h2>⏸️ Game Paused</h2>
+            <div class="pause-buttons">
+                <button id="resume-btn" class="final-btn primary">▶️ Resume</button>
+                <button id="restart-btn" class="final-btn secondary">🔄 Restart</button>
+                <button id="pause-quit-btn" class="final-btn secondary">❌ Quit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dependencies -->
+    <script src="../common-words.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
