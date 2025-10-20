@@ -239,11 +239,13 @@ class BrainChainCalculator extends GameMode {
                     </div>
                     
                     <div class="start-settings">
-                        <label for="start-math-difficulty" class="start-label">Math Difficulty:</label>
+                        <label for="start-math-difficulty" class="start-label">Starting Math Difficulty:</label>
                         <select id="start-math-difficulty" class="start-steps-selector">
-                            <option value="1" selected>Easy - Small numbers (1-10)</option>
-                            <option value="2">Medium - Medium numbers (1-20)</option>
-                            <option value="3">Hard - Large numbers (1-50)</option>
+                            <option value="1" selected>Level 1 - Beginner (1-10, +/-)</option>
+                            <option value="3">Level 3 - Easy (1-20, +/-/*)</option>
+                            <option value="6">Level 6 - Medium (negatives allowed)</option>
+                            <option value="10">Level 10 - Hard</option>
+                            <option value="15">Level 15 - Expert</option>
                         </select>
                     </div>
                     
@@ -406,31 +408,65 @@ class BrainChainCalculator extends GameMode {
         const operators = ['+', '-', '*'];
         let num1, num2, operator, answer;
         
-        // Generate based on difficulty
-        switch(this.difficulty) {
-            case 1:
-                num1 = Math.floor(Math.random() * 10) + 1;
-                num2 = Math.floor(Math.random() * 10) + 1;
-                operator = operators[Math.floor(Math.random() * 2)]; // + and -
-                break;
-            case 2:
-                num1 = Math.floor(Math.random() * 20) + 1;
-                num2 = Math.floor(Math.random() * 10) + 1;
+        // Generate based on 20-level difficulty system
+        if (this.difficulty <= 5) {
+            // Levels 1-5: Easy range, no negatives
+            const maxNum = Math.min(10 + (this.difficulty - 1) * 5, 30); // 10, 15, 20, 25, 30
+            num1 = Math.floor(Math.random() * maxNum) + 1;
+            num2 = Math.floor(Math.random() * maxNum) + 1;
+            
+            if (this.difficulty <= 2) {
+                operator = operators[Math.floor(Math.random() * 2)]; // + and - only
+            } else {
                 operator = operators[Math.floor(Math.random() * 3)]; // +, -, *
-                break;
-            case 3:
-                num1 = Math.floor(Math.random() * 50) + 1;
-                num2 = Math.floor(Math.random() * 20) + 1;
-                operator = operators[Math.floor(Math.random() * 3)];
-                break;
+            }
+            
+            // Ensure subtraction doesn't go negative for levels 1-5
+            if (operator === '-' && num2 > num1) {
+                [num1, num2] = [num2, num1];
+            }
+        } else if (this.difficulty <= 10) {
+            // Levels 6-10: Medium range, allow negatives
+            const maxNum = 20 + (this.difficulty - 6) * 10; // 20, 30, 40, 50, 60
+            num1 = Math.floor(Math.random() * maxNum) + 1;
+            num2 = Math.floor(Math.random() * maxNum) + 1;
+            operator = operators[Math.floor(Math.random() * 3)]; // +, -, *
+            
+            // 30% chance for negative first number after level 5
+            if (Math.random() < 0.3) {
+                num1 = -num1;
+            }
+        } else if (this.difficulty <= 15) {
+            // Levels 11-15: Hard range, more negatives
+            const maxNum = 30 + (this.difficulty - 11) * 20; // 30, 50, 70, 90, 110
+            num1 = Math.floor(Math.random() * maxNum) + 1;
+            num2 = Math.floor(Math.random() * maxNum) + 1;
+            operator = operators[Math.floor(Math.random() * 3)]; // +, -, *
+            
+            // 50% chance for negative numbers after level 10
+            if (Math.random() < 0.5) {
+                num1 = -num1;
+            }
+            if (Math.random() < 0.3) {
+                num2 = -num2;
+            }
+        } else {
+            // Levels 16-20: Expert range, lots of negatives and large numbers
+            const maxNum = 50 + (this.difficulty - 16) * 50; // 50, 100, 150, 200, 250
+            num1 = Math.floor(Math.random() * maxNum) + 1;
+            num2 = Math.floor(Math.random() * maxNum) + 1;
+            operator = operators[Math.floor(Math.random() * 3)]; // +, -, *
+            
+            // 70% chance for negative numbers after level 15
+            if (Math.random() < 0.7) {
+                num1 = -num1;
+            }
+            if (Math.random() < 0.5) {
+                num2 = -num2;
+            }
         }
         
-        // Ensure subtraction doesn't go negative
-        if (operator === '-' && num2 > num1) {
-            [num1, num2] = [num2, num1];
-        }
-        
-        // Calculate answer
+        // Calculate answer (allowing negative results)
         switch(operator) {
             case '+': answer = num1 + num2; break;
             case '-': answer = num1 - num2; break;
@@ -448,16 +484,31 @@ class BrainChainCalculator extends GameMode {
         // Auto-increase difficulty every 15 rows
         if (this.totalRowsCreated > 0 && this.totalRowsCreated % 15 === 0) {
             const oldDifficulty = this.difficulty;
-            this.difficulty = Math.min(this.difficulty + 1, 3); // Max difficulty is 3
+            this.difficulty = Math.min(this.difficulty + 1, 20); // Max difficulty is 20
             
             if (this.difficulty > oldDifficulty) {
-                this.showFeedback(`🎯 Math difficulty increased to Level ${this.difficulty}!`, 'bonus');
+                const difficultyName = this.getDifficultyName(this.difficulty);
+                this.showFeedback(`🎯 Math difficulty increased to Level ${this.difficulty} (${difficultyName})!`, 'bonus');
                 
                 // Update the difficulty display in header
-                const difficultyNames = ['', 'Easy', 'Medium', 'Hard'];
-                document.getElementById('difficulty').textContent = `${this.stepsBack} (Math: ${difficultyNames[this.difficulty]})`;
+                this.updateDifficultyDisplay();
             }
         }
+    }
+
+    getDifficultyName(level) {
+        if (level <= 2) return 'Beginner';
+        if (level <= 5) return 'Easy';
+        if (level <= 8) return 'Medium';
+        if (level <= 12) return 'Hard';
+        if (level <= 15) return 'Expert';
+        if (level <= 18) return 'Master';
+        return 'Legendary';
+    }
+
+    updateDifficultyDisplay() {
+        const difficultyName = this.getDifficultyName(this.difficulty);
+        document.getElementById('difficulty').textContent = `${this.stepsBack} (Math: L${this.difficulty}-${difficultyName})`;
     }
 
     createNewRow() {
@@ -529,8 +580,7 @@ class BrainChainCalculator extends GameMode {
         document.getElementById('current-row').textContent = equation.id + 1;
         
         // Show both memory and math difficulty
-        const difficultyNames = ['', 'Easy', 'Medium', 'Hard'];
-        document.getElementById('difficulty').textContent = `${this.stepsBack} (Math: ${difficultyNames[this.difficulty]})`;
+        this.updateDifficultyDisplay();
         
         // Scroll to show the new row if needed
         this.scrollToLatestRows();
@@ -685,13 +735,12 @@ class BrainChainCalculator extends GameMode {
     }
 
     completeChain() {
-        const bonus = 100 * this.difficulty; // Increased bonus for longer chains
+        const bonus = 100 * Math.min(this.difficulty, 10); // Cap bonus calculation at level 10
         const answeredCount = this.rowsPerChain - 2; // Actual equations answered
         this.showFeedback(`🏆 Level Complete! ${answeredCount} equations solved! Bonus: ${bonus} points!`, 'bonus');
         this.engine.updateScore(bonus);
         
-        // Increase difficulty and chain count
-        this.difficulty = Math.min(this.difficulty + 1, 3);
+        // Increase chain count only (difficulty is handled by row progression now)
         this.chainCount++;
         
         document.getElementById('chain-count').textContent = this.chainCount;
