@@ -202,16 +202,11 @@ class BrainChainCalculator extends GameMode {
         this.name = "Brain Chain Calculator";
         
         // Game state
-        this.currentEquation = null;
-        this.previousAnswer = null;
-        this.equationHistory = [];
-        this.currentStep = 1;
-        this.maxSteps = 5;
+        this.equations = [];
+        this.currentRowIndex = 0;
+        this.maxVisibleRows = 4;
         this.difficulty = 1;
-        
-        // UI state
-        this.showingEquation = true;
-        this.waitingForAnswer = false;
+        this.chainCount = 0;
     }
 
     start() {
@@ -227,64 +222,38 @@ class BrainChainCalculator extends GameMode {
                 <div id="start-screen" class="start-screen">
                     <h2 class="start-title">🧠 Brain Chain Calculator</h2>
                     <p class="start-description">
-                        Train your memory and math skills! Remember the answer to the previous equation 
-                        while solving the current one.
+                        Solve equations row by row. Remember previous answers while new equations appear!
                     </p>
                     <button id="start-btn" class="game-btn btn-start">🚀 Start Training</button>
                 </div>
 
                 <div id="game-content" class="hidden">
-                    <p class="game-description">
-                        Remember the previous answer while solving the current equation!
-                    </p>
-                    
-                    <div class="chain-progress">
-                        <div class="progress-item">
-                            <span class="progress-label">Step</span>
-                            <span class="progress-value"><span id="current-step">1</span>/<span id="max-steps">${this.maxSteps}</span></span>
+                    <div class="game-info">
+                        <div class="info-item">
+                            <span class="info-label">Difficulty:</span>
+                            <span class="info-value" id="difficulty-display">${this.difficulty}</span>
                         </div>
-                        <div class="progress-item">
-                            <span class="progress-label">Difficulty</span>
-                            <span class="progress-value" id="difficulty-display">${this.difficulty}</span>
+                        <div class="info-item">
+                            <span class="info-label">Chains:</span>
+                            <span class="info-value" id="chain-count">0</span>
                         </div>
-                        <div class="progress-item">
-                            <span class="progress-label">Chain</span>
-                            <span class="progress-value" id="chain-count">0</span>
+                        <div class="info-item">
+                            <span class="info-label">Current Row:</span>
+                            <span class="info-value" id="current-row">1</span>
                         </div>
                     </div>
 
-                    <div class="equation-section">
-                        <div class="previous-answer-display">
-                            <div class="previous-label">Previous Answer:</div>
-                            <div id="previous-answer" class="previous-value">—</div>
-                        </div>
-
-                        <div class="current-equation-display">
-                            <div class="equation-label">Current Equation:</div>
-                            <div id="equation-box" class="equation-box">
-                                Ready to start...
-                            </div>
-                        </div>
-
-                        <div class="answer-section">
-                            <div class="answer-label">Your Answer:</div>
-                            <input type="number" id="answer-input" class="answer-input" placeholder="?" disabled>
-                            
-                            <div class="game-buttons">
-                                <button id="next-btn" class="game-btn btn-next">👁️ Next</button>
-                                <button id="submit-btn" class="game-btn btn-submit hidden">✓ Submit</button>
-                            </div>
-                        </div>
+                    <div class="equations-container" id="equations-container">
+                        <!-- Equation rows will be added here dynamically -->
                     </div>
 
                     <div class="game-instructions">
                         <div class="instructions-title">How to Play:</div>
                         <ol class="instructions-list">
-                            <li>Study the equation and calculate the answer mentally</li>
-                            <li>Click "Next" to hide the equation and see a new one</li>
-                            <li>Remember your previous answer while solving the new equation</li>
-                            <li>Enter the answer to the PREVIOUS equation</li>
-                            <li>Complete the chain to advance to higher difficulties!</li>
+                            <li>Study the first equation and calculate mentally</li>
+                            <li>Click "Next" to reveal more equations</li>
+                            <li>When answer boxes become active, enter previous answers</li>
+                            <li>Complete chains to increase difficulty!</li>
                         </ol>
                     </div>
                 </div>
@@ -300,25 +269,6 @@ class BrainChainCalculator extends GameMode {
         document.getElementById('start-btn').addEventListener('click', () => {
             this.startGame();
         });
-
-        // Game buttons
-        document.getElementById('next-btn').addEventListener('click', () => {
-            this.handleNext();
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', () => {
-            this.handleSubmit();
-        });
-
-        // Enter key for input
-        document.getElementById('answer-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const submitBtn = document.getElementById('submit-btn');
-                if (!submitBtn.classList.contains('hidden')) {
-                    this.handleSubmit();
-                }
-            }
-        });
     }
 
     showStartScreen() {
@@ -333,11 +283,11 @@ class BrainChainCalculator extends GameMode {
         // Update game title
         document.getElementById('game-title').textContent = this.name;
         
-        this.generateNewEquation();
-        this.showEquation();
+        // Create first equation row
+        this.createNewRow();
     }
 
-    generateNewEquation() {
+    generateEquation() {
         const operators = ['+', '-', '*'];
         let num1, num2, operator, answer;
         
@@ -372,122 +322,220 @@ class BrainChainCalculator extends GameMode {
             case '*': answer = num1 * num2; break;
         }
         
-        this.currentEquation = {
+        return {
             num1, num2, operator, answer,
-            expression: `${num1} ${operator} ${num2}`
+            expression: `${num1} ${operator} ${num2}`,
+            id: this.equations.length
         };
     }
 
-    showEquation() {
-        const equationBox = document.getElementById('equation-box');
-        const nextBtn = document.getElementById('next-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const answerInput = document.getElementById('answer-input');
+    createNewRow() {
+        const equation = this.generateEquation();
+        this.equations.push(equation);
         
-        equationBox.textContent = `${this.currentEquation.expression} = ?`;
-        equationBox.classList.remove('hidden');
+        const container = document.getElementById('equations-container');
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'equation-row';
+        rowDiv.id = `row-${equation.id}`;
         
-        nextBtn.classList.remove('hidden');
-        submitBtn.classList.add('hidden');
-        answerInput.disabled = true;
-        answerInput.value = '';
+        // Determine button type and state
+        let buttonHtml;
         
-        this.showingEquation = true;
-        this.waitingForAnswer = false;
+        if (equation.id === 0) {
+            // First row: Next button
+            buttonHtml = `<button class="row-btn btn-next" onclick="window.gameEngine.currentMode.handleNext(${equation.id})">Next →</button>`;
+        } else if (equation.id === 1) {
+            // Second row: Next button
+            buttonHtml = `<button class="row-btn btn-next" onclick="window.gameEngine.currentMode.handleNext(${equation.id})">Next →</button>`;
+        } else {
+            // Third+ rows: Submit button
+            buttonHtml = `<button class="row-btn btn-submit" onclick="window.gameEngine.currentMode.handleSubmit(${equation.id})">Submit</button>`;
+        }
+        
+        rowDiv.innerHTML = `
+            <div class="row-content">
+                <div class="expression-box">
+                    <span class="expression-text">${equation.expression}</span>
+                </div>
+                <div class="equals-box">
+                    <span class="equals-text">=</span>
+                </div>
+                <div class="answer-box">
+                    <input type="number" 
+                           class="answer-input" 
+                           id="answer-${equation.id}" 
+                           placeholder="?"
+                           disabled>
+                </div>
+                <div class="button-box">
+                    ${buttonHtml}
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(rowDiv);
+        
+        // Hide expressions of previous rows (except current one)
+        this.hideOldExpressions();
+        
+        // Activate answer box for the row that's 2 steps back
+        if (equation.id >= 2) {
+            this.activateAnswerBox(equation.id - 2);
+        }
+        
+        // Convert previous row's Next button to inactive Submit if it exists
+        if (equation.id >= 2) {
+            this.convertToInactiveSubmit(equation.id - 1);
+        }
+        
+        // Update current row display
+        document.getElementById('current-row').textContent = equation.id + 1;
+        
+        // Scroll to show the new row if needed
+        this.scrollToLatestRows();
+        
+        // Add enter key handler for answer input
+        const answerInput = document.getElementById(`answer-${equation.id}`);
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !answerInput.disabled) {
+                this.handleEnterKey(equation.id);
+            }
+        });
     }
 
-    hideEquation() {
-        const equationBox = document.getElementById('equation-box');
-        const nextBtn = document.getElementById('next-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const answerInput = document.getElementById('answer-input');
-        
-        equationBox.textContent = '? ? ? = ?';
-        equationBox.classList.add('hidden');
-        
-        nextBtn.classList.add('hidden');
-        submitBtn.classList.remove('hidden');
-        answerInput.disabled = false;
-        answerInput.focus();
-        
-        this.showingEquation = false;
-        this.waitingForAnswer = true;
-        
-        // Update previous answer display if this isn't the first equation
-        if (this.currentStep > 1) {
-            document.getElementById('previous-answer').textContent = `Step ${this.currentStep - 1} answer`;
-            document.getElementById('previous-answer').style.color = '#f39c12';
+    hideOldExpressions() {
+        // Hide expressions of all rows except the latest one and the recently answered one
+        this.equations.forEach((eq, index) => {
+            const expressionBox = document.querySelector(`#row-${eq.id} .expression-text`);
+            const expressionContainer = document.querySelector(`#row-${eq.id} .expression-box`);
+            
+            if (expressionBox && expressionContainer) {
+                // Show expression for: current row (latest) and recently answered row (current - 2)
+                const currentRowIndex = this.equations.length - 1;
+                const recentlyAnsweredIndex = currentRowIndex - 2;
+                
+                if (index === currentRowIndex) {
+                    // Current row: always show expression
+                    expressionBox.textContent = eq.expression;
+                    expressionContainer.classList.remove('hidden-expression');
+                    expressionContainer.classList.remove('answered-expression');
+                } else if (index === recentlyAnsweredIndex && index >= 0) {
+                    // Recently answered row: show expression with special styling
+                    expressionBox.textContent = eq.expression;
+                    expressionContainer.classList.remove('hidden-expression');
+                    expressionContainer.classList.add('answered-expression');
+                } else {
+                    // All other rows: hide expression
+                    expressionBox.textContent = '? ? ?';
+                    expressionContainer.classList.add('hidden-expression');
+                    expressionContainer.classList.remove('answered-expression');
+                }
+            }
+        });
+    }
+
+    convertToInactiveSubmit(rowId) {
+        const button = document.querySelector(`#row-${rowId} .row-btn`);
+        if (button) {
+            button.textContent = 'Submit';
+            button.className = 'row-btn btn-submit inactive';
+            button.onclick = null;
+            button.disabled = true;
         }
     }
 
-    handleNext() {
-        if (this.showingEquation) {
-            this.hideEquation();
-        }
+    handleNext(rowId) {
+        // Convert Next button to Submit button (inactive)
+        const button = document.querySelector(`#row-${rowId} .row-btn`);
+        button.textContent = 'Submit';
+        button.className = 'row-btn btn-submit inactive';
+        button.onclick = null;
+        button.disabled = true;
+        
+        // Create new row
+        this.createNewRow();
     }
 
-    handleSubmit() {
-        if (!this.waitingForAnswer) return;
+    handleSubmit(rowId) {
+        // Get the answer for the row that should be answered (rowId - 2)
+        const answerRowId = rowId - 2;
+        if (answerRowId < 0) return;
         
-        const userAnswer = parseInt(document.getElementById('answer-input').value);
+        const answerInput = document.getElementById(`answer-${answerRowId}`);
+        const userAnswer = parseInt(answerInput.value);
+        
         if (isNaN(userAnswer)) {
             this.showFeedback('Please enter a valid number!', 'error');
+            answerInput.focus();
             return;
         }
         
-        // Determine correct answer
-        let correctAnswer;
-        if (this.currentStep === 1) {
-            correctAnswer = this.currentEquation.answer;
-        } else {
-            correctAnswer = this.equationHistory[this.equationHistory.length - 1].answer;
-        }
+        const correctAnswer = this.equations[answerRowId].answer;
         
         if (userAnswer === correctAnswer) {
-            this.handleCorrectAnswer();
+            this.handleCorrectAnswer(answerRowId, rowId);
         } else {
-            this.handleWrongAnswer(correctAnswer);
+            this.handleWrongAnswer(answerRowId, correctAnswer, rowId);
         }
     }
 
-    handleCorrectAnswer() {
+    handleCorrectAnswer(answeredRowId, currentRowId) {
         this.showFeedback('🎉 Correct!', 'success');
         this.engine.updateScore(10 * this.difficulty);
         
-        // Store equation in history
-        this.equationHistory.push(this.currentEquation);
+        // Mark answer as correct
+        const answerInput = document.getElementById(`answer-${answeredRowId}`);
+        answerInput.classList.add('correct');
+        answerInput.disabled = true;
         
-        // Update previous answer display
-        document.getElementById('previous-answer').textContent = this.currentEquation.answer;
-        document.getElementById('previous-answer').style.color = '#2ecc71';
+        // Deactivate current submit button
+        const button = document.querySelector(`#row-${currentRowId} .row-btn`);
+        button.classList.add('inactive');
+        button.onclick = null;
         
-        this.currentStep++;
-        document.getElementById('current-step').textContent = this.currentStep;
+        // Update expression visibility to show the answered row
+        this.hideOldExpressions();
         
-        // Check if chain is complete
-        if (this.currentStep > this.maxSteps) {
-            this.completeChain();
-        } else {
-            // Generate next equation
+        // Check if we've completed a chain (5 equations)
+        if (currentRowId >= 4) {
             setTimeout(() => {
-                this.generateNewEquation();
-                this.showEquation();
+                this.completeChain();
             }, 1000);
+        } else {
+            // Create next row
+            setTimeout(() => {
+                this.createNewRow();
+            }, 500);
         }
     }
 
-    handleWrongAnswer(correctAnswer) {
+    handleWrongAnswer(answeredRowId, correctAnswer, currentRowId) {
         this.showFeedback(`❌ Wrong! Answer was ${correctAnswer}`, 'error');
         this.engine.updateLives(this.engine.gameState.lives - 1);
+        
+        // Mark answer as wrong
+        const answerInput = document.getElementById(`answer-${answeredRowId}`);
+        answerInput.classList.add('wrong');
+        answerInput.value = correctAnswer;
+        answerInput.disabled = true;
+        
+        // Deactivate current submit button
+        const button = document.querySelector(`#row-${currentRowId} .row-btn`);
+        button.classList.add('inactive');
+        button.onclick = null;
+        button.disabled = true;
+        
+        // Update expression visibility to show the answered row
+        this.hideOldExpressions();
         
         if (this.engine.gameState.lives <= 0) {
             setTimeout(() => {
                 this.engine.endGame();
             }, 1500);
         } else {
-            // Continue but restart chain
+            // Continue with next row
             setTimeout(() => {
-                this.restartChain();
+                this.createNewRow();
             }, 1500);
         }
     }
@@ -497,31 +545,101 @@ class BrainChainCalculator extends GameMode {
         this.showFeedback(`🏆 Chain Complete! Bonus: ${bonus} points!`, 'bonus');
         this.engine.updateScore(bonus);
         
-        // Increase difficulty
+        // Increase difficulty and chain count
         this.difficulty = Math.min(this.difficulty + 1, 3);
+        this.chainCount++;
+        
         document.getElementById('difficulty-display').textContent = this.difficulty;
-        
-        // Update chain count
-        const chainCount = parseInt(document.getElementById('chain-count').textContent) + 1;
-        document.getElementById('chain-count').textContent = chainCount;
-        
-        // Level up
+        document.getElementById('chain-count').textContent = this.chainCount;
         this.engine.updateLevel(this.engine.gameState.level + 1);
         
         setTimeout(() => {
-            this.restartChain();
+            this.startNewChain();
         }, 2500);
     }
 
-    restartChain() {
-        this.currentStep = 1;
-        this.equationHistory = [];
-        document.getElementById('current-step').textContent = this.currentStep;
-        document.getElementById('previous-answer').textContent = '—';
-        document.getElementById('previous-answer').style.color = '#f39c12';
+    startNewChain() {
+        // Clear all rows
+        const container = document.getElementById('equations-container');
+        container.innerHTML = '';
         
-        this.generateNewEquation();
-        this.showEquation();
+        // Reset state
+        this.equations = [];
+        this.currentRowIndex = 0;
+        
+        // Start with first row
+        this.createNewRow();
+    }
+
+    activateAnswerBox(rowId) {
+        // First, deactivate all answer boxes
+        document.querySelectorAll('.answer-input.active').forEach(input => {
+            input.classList.remove('active');
+        });
+        
+        // Then activate only the specific one
+        const answerInput = document.getElementById(`answer-${rowId}`);
+        if (answerInput && !answerInput.classList.contains('correct') && !answerInput.classList.contains('wrong')) {
+            answerInput.disabled = false;
+            answerInput.classList.add('active');
+            answerInput.focus();
+        }
+    }
+
+    deactivateButton(rowId) {
+        const button = document.querySelector(`#row-${rowId} .row-btn`);
+        if (button) {
+            button.classList.add('inactive');
+            button.disabled = true;
+        }
+    }
+
+    scrollToLatestRows() {
+        const container = document.getElementById('equations-container');
+        const lastRow = container.lastElementChild;
+        
+        if (lastRow && this.equations.length > 2) {
+            // Only scroll if we have more than 2 rows
+            setTimeout(() => {
+                // Get container and row dimensions
+                const containerRect = container.getBoundingClientRect();
+                const rowRect = lastRow.getBoundingClientRect();
+                const margin = 40; // Space below the new row
+                
+                // Check if the row is not fully visible
+                const isRowFullyVisible = (
+                    rowRect.top >= containerRect.top &&
+                    rowRect.bottom <= containerRect.bottom - margin
+                );
+                
+                if (!isRowFullyVisible) {
+                    // Calculate optimal scroll position
+                    const containerScrollTop = container.scrollTop;
+                    const rowOffsetTop = lastRow.offsetTop;
+                    const containerHeight = container.clientHeight;
+                    const rowHeight = lastRow.offsetHeight;
+                    
+                    // Position the row near the bottom with margin
+                    const targetScrollTop = rowOffsetTop - containerHeight + rowHeight + margin;
+                    
+                    // Smooth scroll to the calculated position
+                    container.scrollTo({
+                        top: Math.max(0, targetScrollTop),
+                        behavior: 'smooth'
+                    });
+                }
+            }, 100);
+        }
+    }
+
+    handleEnterKey(rowId) {
+        // Find the active submit button
+        const buttons = document.querySelectorAll('.btn-submit:not(.inactive)');
+        if (buttons.length > 0) {
+            const activeButton = buttons[0];
+            const buttonRowId = parseInt(activeButton.closest('.equation-row').id.split('-')[1]);
+            this.handleSubmit(buttonRowId);
+        }
     }
 
     showFeedback(message, type) {
@@ -546,20 +664,27 @@ class BrainChainCalculator extends GameMode {
     }
 
     togglePause() {
-        // Disable/enable inputs during pause
-        const answerInput = document.getElementById('answer-input');
-        const nextBtn = document.getElementById('next-btn');
-        const submitBtn = document.getElementById('submit-btn');
+        // Disable/enable all inputs and buttons during pause
+        const inputs = document.querySelectorAll('.answer-input');
+        const buttons = document.querySelectorAll('.row-btn');
         
-        if (this.engine.gameState.isPaused) {
-            if (answerInput) answerInput.disabled = true;
-            if (nextBtn) nextBtn.disabled = true;
-            if (submitBtn) submitBtn.disabled = true;
-        } else {
-            if (answerInput && this.waitingForAnswer) answerInput.disabled = false;
-            if (nextBtn && this.showingEquation) nextBtn.disabled = false;
-            if (submitBtn && this.waitingForAnswer) submitBtn.disabled = false;
-        }
+        inputs.forEach(input => {
+            if (this.engine.gameState.isPaused) {
+                input.dataset.wasDisabled = input.disabled;
+                input.disabled = true;
+            } else {
+                input.disabled = input.dataset.wasDisabled === 'true';
+            }
+        });
+        
+        buttons.forEach(button => {
+            if (this.engine.gameState.isPaused) {
+                button.dataset.wasDisabled = button.disabled;
+                button.disabled = true;
+            } else {
+                button.disabled = button.dataset.wasDisabled === 'true';
+            }
+        });
     }
 
     cleanup() {
