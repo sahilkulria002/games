@@ -46,6 +46,17 @@
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.15);
             transition: transform 0.1s ease;
+            position: relative;
+        }
+        .square.coord-label {
+            font-size: 8px;
+            color: rgba(255,255,255,0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 1;
         }
         .square.light { background: var(--tile-light); }
         .square.dark { background: var(--tile-dark); }
@@ -146,12 +157,42 @@
                 return lang === 'en' ? 'No legal moves.' : 'कोई कानूनी चाल नहीं।';
             }
             const pieceName = getPieceName(piece, lang);
-            const targets = moves.map(m => posToCoord(m.to.row, m.to.col)).join(', ');
+            const color = piece[0];
+            const type = piece[1];
+            let description = '';
+            const targets = moves.map(m => posToCoord(m.to.row, m.to.col));
             if (lang === 'en') {
-                return `${pieceName} can move to: ${targets}`;
+                if (type === 'P') {
+                    description = `${pieceName} can move forward one square, or two squares from starting position. Can capture diagonally.`;
+                } else if (type === 'R') {
+                    description = `${pieceName} moves horizontally or vertically any number of squares.`;
+                } else if (type === 'N') {
+                    description = `${pieceName} moves in an L-shape: two squares in one direction and one perpendicular.`;
+                } else if (type === 'B') {
+                    description = `${pieceName} moves diagonally any number of squares.`;
+                } else if (type === 'Q') {
+                    description = `${pieceName} moves horizontally, vertically, or diagonally any number of squares.`;
+                } else if (type === 'K') {
+                    description = `${pieceName} moves one square in any direction. Can castle.`;
+                }
+                description += ` Legal moves: ${targets.join(', ')}`;
             } else {
-                return `${pieceName} जा सकता है: ${targets}`;
+                if (type === 'P') {
+                    description = `${pieceName} सिर्फ एक कदम आगे चल सकता है, या शुरू की स्थिति से दो कदम। तिरछा कब्जा कर सकता है।`;
+                } else if (type === 'R') {
+                    description = `${pieceName} क्षैतिज या ऊर्ध्वाधर किसी भी संख्या में वर्गों में चलता है।`;
+                } else if (type === 'N') {
+                    description = `${pieceName} L-आकार में चलता है: एक दिशा में दो वर्ग और एक लंबवत।`;
+                } else if (type === 'B') {
+                    description = `${pieceName} तिरछा किसी भी संख्या में वर्गों में चलता है।`;
+                } else if (type === 'Q') {
+                    description = `${pieceName} क्षैतिज, ऊर्ध्वाधर, या तिरछा किसी भी संख्या में वर्गों में चलता है।`;
+                } else if (type === 'K') {
+                    description = `${pieceName} किसी भी दिशा में एक वर्ग चलता है। कासलिंग कर सकता है।`;
+                }
+                description += ` कानूनी चालें: ${targets.join(', ')}`;
             }
+            return description;
         }
 
         function speak(text, lang) {
@@ -497,8 +538,18 @@
                     }
                     const piece = board[r][c];
                     if (piece) {
-                        sq.textContent = symbols[piece] || '';
-                        sq.classList.add(piece[0] === 'w' ? 'white-piece' : 'black-piece');
+                        const pieceSpan = document.createElement('span');
+                        pieceSpan.textContent = symbols[piece] || '';
+                        pieceSpan.classList.add(piece[0] === 'w' ? 'white-piece' : 'black-piece');
+                        pieceSpan.style.zIndex = '2';
+                        pieceSpan.style.position = 'relative';
+                        sq.appendChild(pieceSpan);
+                    }
+                    if (instructionsOn) {
+                        const coordSpan = document.createElement('span');
+                        coordSpan.className = 'coord-label';
+                        coordSpan.textContent = posToCoord(r, c);
+                        sq.appendChild(coordSpan);
                     }
                     sq.title = posToCoord(r,c);
                     sq.addEventListener('click', () => squareClicked(r, c, moves, gameOver));
