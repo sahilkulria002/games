@@ -48,21 +48,61 @@
             transition: transform 0.1s ease;
             position: relative;
         }
-        .square.coord-label {
-            font-size: 8px;
-            color: rgba(255,255,255,0.5);
+        .coord-label {
+            font-size: 15px;
+            color: rgba(2, 220, 255, 0.95);
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
+            z-index: 3;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-shadow: 0 0 7px rgba(0,255,255,0.8);
+        }
+        .square.light { background: #f7e4b4; }
+        .square.dark { background: #7f5a34; }
+
+        .square.selected {
+            outline: 2px solid #00ffdf;
+            box-shadow: 0 0 20px #00ffe0, inset 0 0 14px #10d5ff;
+            animation: pulse-select 1.0s infinite alternate;
+            z-index: 2;
+        }
+
+        .square.move-target {
+            background: rgba(32, 0, 52, 0.85);
+            border: 2px solid #81a7ff;
+            box-shadow: 0 0 17px rgba(57, 150, 255, 0.85), inset 0 0 9px rgba(145, 203, 255,0.7);
+            animation: pulse-target 1.2s infinite alternate;
+            color: #fff;
             z-index: 1;
         }
-        .square.light { background: var(--tile-light); }
-        .square.dark { background: var(--tile-dark); }
-        .square.selected { outline: 2px solid #ffec87; }
-        .square.move-target { outline: 2px dashed #3ec6ff; }
-        .square.capture { background: #ff666640 !important; }
+
+        .square.capture {
+            background: rgba(128, 4, 15, 0.7) !important;
+            border: 2px solid #ff5f70;
+            box-shadow: 0 0 22px rgba(255, 90, 95, 0.95), inset 0 0 10px rgba(255, 40, 60,0.9);
+            animation: pulse-capture 1.0s infinite alternate;
+            z-index: 2;
+        }
+
+        @keyframes pulse-select {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+
+        @keyframes pulse-target {
+            from { transform: scale(1); }
+            to { transform: scale(1.03); }
+        }
+
+        @keyframes pulse-capture {
+            from { transform: scale(1); }
+            to { transform: scale(1.04); }
+        }
+
         .status { margin: 16px 0; font-size: 1.05rem; }
         .controls { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
         .side-panel { width: 280px; min-width: 240px; background: rgba(0,0,0,0.20); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; }
@@ -197,8 +237,17 @@
 
         function speak(text, lang) {
             if ('speechSynthesis' in window) {
+                if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                    window.speechSynthesis.cancel();
+                }
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = lang === 'en' ? 'en-US' : 'hi-IN';
+                utterance.onend = () => {
+                    // optionally nothing
+                };
+                utterance.onerror = () => {
+                    // fallback or ignore
+                };
                 window.speechSynthesis.speak(utterance);
             }
         }
