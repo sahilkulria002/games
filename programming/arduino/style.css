@@ -312,6 +312,21 @@ h3 {
     margin-top: 20px;
 }
 
+.nav-btn {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 8px 12px;
+    color: #000;
+    background: #00ff88;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-btn:hover {
+    background: #00cc70;
+}
+
 .chat-panel {
     margin-top: 20px;
     background: rgba(0,0,0,0.30);
