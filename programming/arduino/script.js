@@ -383,6 +383,15 @@ void loop() {
         document.getElementById('play-audio').addEventListener('click', () => this.playInstructionsAudio());
         document.getElementById('pause-audio').addEventListener('click', () => this.pauseInstructionsAudio());
 
+        // Chat support (free local logic)
+        document.getElementById('chat-send').addEventListener('click', () => this.handleChatAsk());
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.handleChatAsk();
+            }
+        });
+
         // Drag and drop
         this.initializeDragAndDrop();
     }
@@ -648,6 +657,104 @@ void loop() {
             }
             return token;
         }).join('');
+    }
+
+    handleChatAsk() {
+        const input = document.getElementById('chat-input');
+        let question = input.value.trim();
+        if (!question) return;
+
+        const history = document.getElementById('chat-history');
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-msg user';
+        userMsg.textContent = 'You: ' + question;
+        history.appendChild(userMsg);
+
+        const answer = this.getLocalChatAnswer(question);
+        const botMsg = document.createElement('div');
+        botMsg.className = 'chat-msg bot';
+        botMsg.textContent = 'Tutor: ' + answer;
+        history.appendChild(botMsg);
+
+        history.scrollTop = history.scrollHeight;
+        input.value = '';
+
+        if (window.speechSynthesis) {
+            const utterance = new SpeechSynthesisUtterance(answer);
+            utterance.lang = document.getElementById('language-select').value === 'hindi' ? 'hi-IN' : 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    getLocalChatAnswer(question) {
+        const lang = document.getElementById('language-select').value;
+        const questionLow = question.toLowerCase();
+        const code = this.levels[this.currentLevel].correctCode;
+
+        const prelude = lang === 'hindi'
+            ? 'Main yeh bata sakta hoon:'
+            : 'I can help with:';
+
+        const pinMatch = questionLow.match(/pin\s*(\d+)/);
+        if (pinMatch) {
+            const pinNum = pinMatch[1];
+            const isOutput = /output|led|motor|servo|analogwrite|digitalwrite/.test(questionLow);
+            const isInput = /input|button|sensor|echo|ultrasonic/.test(questionLow);
+            if (isOutput && !isInput) {
+                return lang === 'hindi'
+                    ? `${prelude} Pin ${pinNum} ko output se jodhen. pinMode(${pinNum}, OUTPUT) lagayein.`
+                    : `${prelude} Use pin ${pinNum} as output with pinMode(${pinNum}, OUTPUT).`;
+            }
+            if (isInput && !isOutput) {
+                return lang === 'hindi'
+                    ? `${prelude} Pin ${pinNum} ko input se jodhen. pinMode(${pinNum}, INPUT) lagayein.`
+                    : `${prelude} Use pin ${pinNum} as input with pinMode(${pinNum}, INPUT).`;
+            }
+            return lang === 'hindi'
+                ? `${prelude} Pin ${pinNum} ka use sensor ya actuator ke liye ho sakta hai; code ko check karein.`
+                : `${prelude} Pin ${pinNum} can be used for sensor or actuator; check the code context.`;
+        }
+
+        if (questionLow.includes('delay')) {
+            return lang === 'hindi' ? `${prelude} delay(1000) 1 second ka wait hai.` : `${prelude} delay(1000) waits for 1 second.`;
+        }
+        if (questionLow.includes('pinmode') || questionLow.includes('pin mode')) {
+            return lang === 'hindi'
+                ? `${prelude} pinMode(pin, OUTPUT) output, pinMode(pin, INPUT) input ko set karta hai.`
+                : `${prelude} pinMode(pin, OUTPUT) sets pin as output; pinMode(pin, INPUT) sets pin as input.`;
+        }
+        if (questionLow.includes('setup')) {
+            return lang === 'hindi'
+                ? `${prelude} setup() ek baar start mein chalega. yah pinMode aur initial setup karta hai.`
+                : `${prelude} setup() executes once and does initialization such as pinMode.`;
+        }
+        if (questionLow.includes('loop')) {
+            return lang === 'hindi'
+                ? `${prelude} loop() baar-baar chalta hai aur code ko repeat karta hai.`
+                : `${prelude} loop() runs repeatedly and repeats your code block.`;
+        }
+        if (questionLow.includes('motor')) {
+            return lang === 'hindi'
+                ? `${prelude} analogWrite(pin, value) se DC motor speed control hoti hai. 255 full speed, 0 band.`
+                : `${prelude} analogWrite(pin, value) controls motor PWM speed. 255 is full speed, 0 is off.`;
+        }
+        if (questionLow.includes('ultrasonic')) {
+            return lang === 'hindi'
+                ? `${prelude} Ultrasonic sensor mein trig pin pulse bhejta hai, echo pin duration wapas leta hai, distance calculate hota hai.`
+                : `${prelude} In ultrasonic, trig sends pulse and echo measures duration. Distance is calculated from duration.`;
+        }
+
+        if (questionLow.includes('what') && questionLow.includes('code')) {
+            return lang === 'hindi'
+                ? `${prelude} Is level ka code: ${this.autoTranslateToHindi(code)}`
+                : `${prelude} This level code is: ${code}`;
+        }
+
+        const sampleHelp = lang === 'hindi'
+            ? 'Kuch example puchhein: delay, pinMode, setup, loop, motor, ultrasonic, pin 13.'
+            : 'Try asking about: delay, pinMode, setup, loop, motor, ultrasonic, pin 13.';
+
+        return `${prelude} ${sampleHelp}`;
     }
 
     showMessage(type, text) {
