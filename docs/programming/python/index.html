@@ -3,26 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Programming</title>
-    <style>
-        body { background: linear-gradient(135deg, #0a0a0a, #1a1a1a); color: #fff; font-family: Arial, sans-serif; }
-        .container { max-width: 800px; margin: 60px auto; text-align: center; }
-        h1 { font-size: 2.5rem; margin-bottom: 30px; }
-        p { font-size: 1.2rem; color: #aaa; }
-        .nav-btn { display: inline-block; margin-right: 8px; padding: 8px 12px; color: #000; background: #00ff88; border-radius: 6px; text-decoration: none; font-weight: bold; }
-        .nav-btn:hover { background: #00cc70; }
-    </style>
+    <title>Python Programming Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🐍 Python Programming</h1>
+        <h1>🐍 Python Programming Challenge</h1>
         <div class="nav-row" style="margin-bottom:18px;">
             <a class="nav-btn" href="../index.html">🏠 Programming Hub</a>
             <a class="nav-btn" href="../../index.html">🎮 Game Hub</a>
             <a class="nav-btn" href="../arduino/index.html">🔌 Arduino</a>
         </div>
-        <p>Master Python with interactive lessons and coding challenges!</p>
-        <!-- Add content here -->
+
+        <!-- Level Selection -->
+        <div id="level-selection" class="level-selection">
+            <h2>Select a Level</h2>
+            <div class="level-buttons">
+                <button class="level-btn" data-level="1">Level 1: Print Statements</button>
+                <button class="level-btn" data-level="2">Level 2: Variables</button>
+                <button class="level-btn" data-level="3">Level 3: Data Types</button>
+                <button class="level-btn" data-level="4">Level 4: Lists</button>
+                <button class="level-btn" data-level="5">Level 5: For Loops</button>
+                <button class="level-btn" data-level="6">Level 6: If/Else Conditions</button>
+                <button class="level-btn" data-level="7">Level 7: Functions</button>
+                <button class="level-btn" data-level="8">Level 8: String Methods</button>
+            </div>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="game-interface" class="game-interface hidden">
+            <div class="level-info">
+                <h2 id="level-title">Level 1: Print Statements</h2>
+                <div class="score-display">
+                    <span>Score: <span id="score">0</span></span>
+                    <span>Attempts: <span id="attempts">0</span></span>
+                </div>
+
+                <div class="instructions-panel">
+                    <div class="instructions-header">
+                        <label for="language-select">Language:</label>
+                        <select id="language-select">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi</option>
+                        </select>
+                        <button id="play-audio" class="control-btn">Play Audio</button>
+                        <button id="pause-audio" class="control-btn">Pause</button>
+                    </div>
+                    <p id="instructions-text" class="instructions-text">Instruction text appears here on level load.</p>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <!-- Left Panel -->
+                <div class="left-panel">
+                    <!-- Line Order Section -->
+                    <div class="word-arrangement">
+                        <h3>Arrange the Code Lines</h3>
+                        <p>Drag lines up/down or use controls to order code. Empty line positions are interchangeable.</p>
+                        <ul id="line-order-list" class="line-order-list"></ul>
+                        <button id="check-arrangement" class="check-btn">Check Arrangement</button>
+                    </div>
+
+                    <!-- Typing Section -->
+                    <div class="typing-section">
+                        <h3>Type the Code</h3>
+                        <textarea id="code-input" placeholder="Write your Python code here..."></textarea>
+                        <button id="check-typing" class="check-btn">Check Code</button>
+                    </div>
+                </div>
+
+                <!-- Right Panel -->
+                <div class="right-panel">
+                    <h3>Correct Code</h3>
+                    <pre id="correct-code" class="correct-code"></pre>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-level" class="control-btn">Reset Level</button>
+                <button id="next-level" class="control-btn hidden">Next Level</button>
+                <button id="back-to-levels" class="control-btn">Back to Levels</button>
+            </div>
+
+            <div class="chat-panel">
+                <h3>Ask the Tutor</h3>
+                <div id="chat-history" class="chat-history"></div>
+                <textarea id="chat-input" placeholder="Ask about syntax, variables, loops, functions, etc."></textarea>
+                <button id="chat-send" class="control-btn">Ask</button>
+            </div>
+        </div>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
