@@ -21,9 +21,9 @@
             color: #fff;
             min-height: 100vh;
         }
-        .page { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; padding: 20px; margin: 0; }
-        h1 { font-size: 2rem; margin-bottom: 16px; color: var(--primary); text-align: center; }
-        .center-area { display: flex; align-items: flex-start; justify-content: center; width: 100%; max-width: 1200px; gap: 24px; flex-wrap: wrap; }
+        .game-area { display: flex; align-items: flex-start; justify-content: center; width: 100%; max-width: 1400px; gap: 20px; }
+        .captured-left, .captured-right { width: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .captured-left .piece, .captured-right .piece { font-size: clamp(24px, 6vmin, 52px); line-height: 1; margin: 2px 0; }
         .board-wrapper { width: min(90vmin, 640px); height: min(90vmin, 640px); }
         .board {
             border: 4px solid #5b5b59;
@@ -105,6 +105,22 @@
 
         .status { margin: 16px 0; font-size: 1.05rem; }
         .controls { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .mode-pill { border-radius: 999px; padding: 3px 8px; font-size: 0.77rem; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(255,255,255,0.10); border: 1px solid rgba(173,216,230,0.5); }
+        .illegal-bump {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 60, 60, 0.45);
+            animation: bump-flash 0.5s ease-out forwards;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 4;
+        }
+        @keyframes bump-flash {
+            0% { transform: scale(0.8); opacity: 1; }
+            60% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
         .side-panel { width: 280px; min-width: 240px; background: rgba(0,0,0,0.20); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; }
         button { font-weight: bold; cursor: pointer; border: none; border-radius: 8px; padding: 8px 14px; background: #2a3548; color: #fcfcfd; }
         button:hover { background: #3b4e72; }
@@ -122,34 +138,36 @@
 <body>
     <div class="page">
         <h1>Game 6: Complete Chess</h1>
-        <div class="captured-row">
-            <div class="captured-section"><strong>White captured:</strong> <span id="white-captured"></span></div>
-            <div class="captured-section"><strong>Black captured:</strong> <span id="black-captured"></span></div>
+        <div class="game-area">
+            <div class="captured-left" id="white-captured"></div>
+            <div class="center-area">
+                <div class="board-wrapper">
+                    <div id="board" class="board" aria-label="Chess board"></div>
+                </div>
+                <div class="side-panel">
+                    <div class="status" id="status">Loading…</div>
+                <div class="controls">
+                    <button id="new-game" type="button">New Game</button>
+                    <button id="undo" type="button" disabled>Undo</button>
+                    <button id="flip" type="button">Flip Board</button>
+                    <button id="instructions-toggle" type="button">Instructions: Off</button>
+                    <button id="advanced-toggle" type="button">Advanced: Off</button>
+                    <span class="mode-pill" id="mode-pill">Mode: Casual</span>
+                </div>
+                <div class="language-selector" id="language-selector">
+                    <label><input type="radio" name="language" value="en" checked> English</label>
+                    <label><input type="radio" name="language" value="hi"> Hindi</label>
+                </div>
+                <div class="instructions-box" id="instructions-box"></div>
+                <div class="info">
+                    <p>Click a piece to see legal moves. You can castle, promote (default Queen), en passant, check, checkmate, and stalemate.</p>
+                    <p>Use undo for quick trial play. Board orientation can be flipped for black perspective.</p>
+                </div>
+            </div>
         </div>
-        <div class="center-area">
-            <div class="board-wrapper">
-                <div id="board" class="board" aria-label="Chess board"></div>
-            </div>
-            <div class="side-panel">
-                <div class="status" id="status">Loading…</div>
-            <div class="controls">
-                <button id="new-game" type="button">New Game</button>
-                <button id="undo" type="button" disabled>Undo</button>
-                <button id="flip" type="button">Flip Board</button>
-                <button id="instructions-toggle" type="button">Instructions: Off</button>
-            </div>
-            <div class="language-selector" id="language-selector">
-                <label><input type="radio" name="language" value="en" checked> English</label>
-                <label><input type="radio" name="language" value="hi"> Hindi</label>
-            </div>
-            <div class="instructions-box" id="instructions-box"></div>
-            <div class="info">
-                <p>Click a piece to see legal moves. You can castle, promote (default Queen), en passant, check, checkmate, and stalemate.</p>
-                <p>Use undo for quick trial play. Board orientation can be flipped for black perspective.</p>
-            </div>
+            <div class="captured-right" id="black-captured"></div>
         </div>
     </div>
-</div>
 
     <script>
         const symbols = {
@@ -168,6 +186,7 @@
         let flipped = false;
         let instructionsOn = false;
         let language = 'en';
+        let advancedMode = false;
 
         const boardEl = document.getElementById('board');
         const statusEl = document.getElementById('status');
@@ -177,6 +196,8 @@
         const newGameBtn = document.getElementById('new-game');
         const flipBtn = document.getElementById('flip');
         const instructionsToggleBtn = document.getElementById('instructions-toggle');
+        const advancedToggleBtn = document.getElementById('advanced-toggle');
+        const modePill = document.getElementById('mode-pill');
         const languageSelector = document.getElementById('language-selector');
         const instructionsBox = document.getElementById('instructions-box');
 
@@ -233,6 +254,17 @@
                 description += ` कानूनी चालें: ${targets.join(', ')}`;
             }
             return description;
+        }
+
+        function showIllegalBump(row, col) {
+            const squares = boardEl.children;
+            const idx = row * 8 + col;
+            const square = squares[idx];
+            if (!square) return;
+            const bump = document.createElement('div');
+            bump.className = 'illegal-bump';
+            square.appendChild(bump);
+            setTimeout(() => { square.removeChild(bump); }, 500);
         }
 
         function speak(text, lang) {
@@ -582,7 +614,7 @@
                     sq.dataset.col = c;
                     if (selected && selected.row === r && selected.col === c) sq.classList.add('selected');
                     const target = legalMoves.find(m => m.to.row===r && m.to.col===c);
-                    if (target) {
+                    if (target && !advancedMode) {
                         sq.classList.add(target.capturedPiece ? 'capture' : 'move-target');
                     }
                     const piece = board[r][c];
@@ -605,8 +637,8 @@
                     boardEl.appendChild(sq);
                 }
             }
-            whiteCapturedEl.innerHTML = capturedPieces.w.map(p => `<span class="white-piece">${symbols[p] || ''}</span>`).join('');
-            blackCapturedEl.innerHTML = capturedPieces.b.map(p => `<span class="black-piece">${symbols[p] || ''}</span>`).join('');
+            whiteCapturedEl.innerHTML = capturedPieces.w.map(p => `<div class="piece white-piece">${symbols[p] || ''}</div>`).join('');
+            blackCapturedEl.innerHTML = capturedPieces.b.map(p => `<div class="piece black-piece">${symbols[p] || ''}</div>`).join('');
         }
 
         function squareClicked(row, col, allLegalMoves, gameOver) {
@@ -619,6 +651,15 @@
                     selected = null;
                     legalMoves = [];
                     render();
+                    return;
+                }
+                if (advancedMode) {
+                    showIllegalBump(row, col);
+                    if (instructionsOn) {
+                        const text = language === 'en' ? 'Illegal move not allowed in advanced mode.' : 'एडवांस मोड में यह अवैध चाल नहीं है।';
+                        instructionsBox.textContent = text;
+                        speak(text, language);
+                    }
                     return;
                 }
             }
@@ -647,6 +688,12 @@
             if (!instructionsOn) {
                 instructionsBox.textContent = '';
             }
+        });
+        advancedToggleBtn.addEventListener('click', () => {
+            advancedMode = !advancedMode;
+            advancedToggleBtn.textContent = `Advanced: ${advancedMode ? 'On' : 'Off'}`;
+            modePill.textContent = `Mode: ${advancedMode ? 'Advanced' : 'Casual'}`;
+            render();
         });
         languageSelector.addEventListener('change', (e) => {
             if (e.target.name === 'language') {

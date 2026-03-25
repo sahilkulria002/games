@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Programming Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Arduino Programming Challenge</h1>
+
+        <!-- Level Selection -->
+        <div id="level-selection" class="level-selection">
+            <h2>Select a Level</h2>
+            <div class="level-buttons">
+                <button class="level-btn" data-level="1">Level 1: Basic Code</button>
+                <button class="level-btn" data-level="2">Level 2: Blink LED</button>
+                <button class="level-btn" data-level="3">Level 3: Blink Multiple LEDs</button>
+                <button class="level-btn" data-level="4">Level 4: Run DC Motor</button>
+                <button class="level-btn" data-level="5">Level 5: Run Multiple DC Motors</button>
+                <button class="level-btn" data-level="6">Level 6: Ultrasonic Sensor</button>
+                <button class="level-btn" data-level="7">Level 7: For Loop</button>
+                <button class="level-btn" data-level="8">Level 8: Servo Motor</button>
+            </div>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="game-interface" class="game-interface hidden">
+            <div class="level-info">
+                <h2 id="level-title">Level 1: Basic Code</h2>
+                <div class="score-display">
+                    <span>Score: <span id="score">0</span></span>
+                    <span>Attempts: <span id="attempts">0</span></span>
+                </div>
+
+                <div class="instructions-panel">
+                    <div class="instructions-header">
+                        <label for="language-select">Language:</label>
+                        <select id="language-select">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi</option>
+                        </select>
+                        <button id="play-audio" class="control-btn">Play Audio</button>
+                        <button id="pause-audio" class="control-btn">Pause</button>
+                    </div>
+                    <p id="instructions-text" class="instructions-text">Instruction text appears here on level load.</p>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <!-- Left Panel -->
+                <div class="left-panel">
+                    <!-- Line Order Section -->
+                    <div class="word-arrangement">
+                        <h3>Arrange the Code Lines</h3>
+                        <p>Drag lines up/down or use controls to order code. Empty line positions are interchangeable.</p>
+                        <ul id="line-order-list" class="line-order-list"></ul>
+                        <button id="check-arrangement" class="check-btn">Check Arrangement</button>
+                    </div>
+
+                    <!-- Typing Section -->
+                    <div class="typing-section">
+                        <h3>Type the Code</h3>
+                        <textarea id="code-input" placeholder="Write your Arduino code here..."></textarea>
+                        <button id="check-typing" class="check-btn">Check Code</button>
+                    </div>
+                </div>
+
+                <!-- Right Panel -->
+                <div class="right-panel">
+                    <h3>Correct Code</h3>
+                    <pre id="correct-code" class="correct-code"></pre>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-level" class="control-btn">Reset Level</button>
+                <button id="next-level" class="control-btn hidden">Next Level</button>
+                <button id="back-to-levels" class="control-btn">Back to Levels</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
