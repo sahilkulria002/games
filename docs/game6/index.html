@@ -125,6 +125,8 @@
         button { font-weight: bold; cursor: pointer; border: none; border-radius: 8px; padding: 8px 14px; background: #2a3548; color: #fcfcfd; }
         button:hover { background: #3b4e72; }
         button[disabled] { opacity: 0.56; cursor: not-allowed; }
+        select { font-weight: bold; cursor: pointer; border: none; border-radius: 8px; padding: 8px 14px; background: #2a3548; color: #fcfcfd; }
+        select:hover { background: #3b4e72; }
         .info { margin-top: 14px; max-width: 420px; }
         .language-selector { margin-top: 10px; display: none; }
         .language-selector label { display: block; margin: 4px 0; }
@@ -152,6 +154,15 @@
                     <button id="flip" type="button">Flip Board</button>
                     <button id="instructions-toggle" type="button">Instructions: Off</button>
                     <button id="advanced-toggle" type="button">Advanced: Off</button>
+                    <select id="game-mode">
+                        <option value="human-human">Human vs Human</option>
+                        <option value="human-computer">Human vs Computer</option>
+                    </select>
+                    <select id="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
                     <span class="mode-pill" id="mode-pill">Mode: Casual</span>
                 </div>
                 <div class="language-selector" id="language-selector">
@@ -187,6 +198,9 @@
         let instructionsOn = false;
         let language = 'en';
         let advancedMode = false;
+        let gameMode = 'human-human';
+        let gameOver = false;
+        let difficulty = 'medium';
 
         const boardEl = document.getElementById('board');
         const statusEl = document.getElementById('status');
@@ -302,6 +316,8 @@
             enPassant = null;
             capturedPieces = { w: [], b: [] };
             history = [];
+            gameOver = false;
+            aiThinking = false;
             render();
         }
 
@@ -441,6 +457,11 @@
                 enPassant = null;
             }
             activeColor = activeColor === 'w' ? 'b' : 'w';
+
+            // Trigger AI move if it's computer's turn
+            if (gameMode === 'human-computer' && activeColor === 'b' && !gameOver) {
+                setTimeout(makeAIMove, 500);
+            }
         }
 
         function undo() {
@@ -595,7 +616,7 @@
         function render() {
             boardEl.innerHTML = '';
             const moves = generateLegalMoves(activeColor);
-            const gameOver = moves.length === 0;
+            gameOver = moves.length === 0;
             const check = isInCheck(activeColor);
             let status = (activeColor === 'w' ? 'White' : 'Black') + ' to move';
             if (gameOver) {
@@ -701,7 +722,274 @@
             }
         });
 
+        document.getElementById('game-mode').addEventListener('change', (e) => {
+            gameMode = e.target.value;
+            const difficultyEl = document.getElementById('difficulty');
+            difficultyEl.style.display = gameMode === 'human-computer' ? 'inline-block' : 'none';
+            if (gameMode === 'human-computer' && activeColor === 'b') {
+                setTimeout(makeAIMove, 500);
+            }
+        });
+
+        document.getElementById('difficulty').addEventListener('change', (e) => {
+            difficulty = e.target.value;
+        });
+
+        // Helper functions for AI
+        function cloneBoard(board) {
+            return board.map(row => [...row]);
+        }
+
+        function isKingInCheck(color) {
+            // Find king position
+            let kingPos = null;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (board[r][c] === color + 'K') {
+                        kingPos = [r, c];
+                        break;
+                    }
+                }
+                if (kingPos) break;
+            }
+
+            if (!kingPos) return false;
+
+            const opponentColor = color === 'w' ? 'b' : 'w';
+
+            // Check if any opponent piece can attack the king
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece && piece[0] === opponentColor) {
+                        const moves = getPossibleMoves(r, c);
+                        if (moves.some(move => move[0] === kingPos[0] && move[1] === kingPos[1])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function getPossibleMoves(row, col) {
+            return generateMovesForPiece(row, col);
+        }
+
+        function generateLegalMovesForAI(color) {
+            const moves = [];
+            const originalActiveColor = activeColor;
+            activeColor = color;
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece && piece[0] === color) {
+                        const possibleMoves = getPossibleMoves(r, c);
+                        for (const move of possibleMoves) {
+                            // Check if move would leave king in check
+                            const snapshot = {
+                                board: cloneBoard(board),
+                                castling: { ...castling },
+                                enPassant,
+                                activeColor,
+                                capturedPieces: { w:[...capturedPieces.w], b:[...capturedPieces.b] }
+                            };
+
+                            applyMove({ from: {row: r, col: c}, to: {row: move[0], col: move[1]} });
+
+                            if (!isKingInCheck(color)) {
+                                moves.push({ from: {row: r, col: c}, to: {row: move[0], col: move[1]} });
+                            }
+
+                            // Undo move
+                            board = cloneBoard(snapshot.board);
+                            castling = { ...snapshot.castling };
+                            enPassant = snapshot.enPassant;
+                            activeColor = snapshot.activeColor;
+                            capturedPieces = { w:[...snapshot.capturedPieces.w], b:[...snapshot.capturedPieces.b] };
+                        }
+                    }
+                }
+            }
+
+            activeColor = originalActiveColor;
+            return moves;
+        }
+
+        // AI Functions
+        const PIECE_VALUES = {
+            'P': 100, 'N': 320, 'B': 330, 'R': 500, 'Q': 900, 'K': 20000
+        };
+
+        function evaluatePosition() {
+            let score = 0;
+
+            // Material evaluation
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece) {
+                        const value = PIECE_VALUES[piece[1]];
+                        score += piece[0] === 'w' ? value : -value;
+                    }
+                }
+            }
+
+            // Positional bonuses
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece) {
+                        let bonus = 0;
+                        if (piece[1] === 'P') {
+                            // Pawns get bonus for advancing
+                            bonus = piece[0] === 'w' ? (6 - r) * 10 : r * 10;
+                        } else if (piece[1] === 'N' || piece[1] === 'B') {
+                            // Knights and bishops prefer center
+                            const centerDistance = Math.abs(3.5 - r) + Math.abs(3.5 - c);
+                            bonus = (7 - centerDistance) * 5;
+                        } else if (piece[1] === 'K') {
+                            // King safety - prefer corners in endgame
+                            const cornerDistance = Math.min(r, 7-r) + Math.min(c, 7-c);
+                            bonus = cornerDistance * 2;
+                        }
+
+                        score += piece[0] === 'w' ? bonus : -bonus;
+                    }
+                }
+            }
+
+            return score;
+        }
+
+        function minimax(depth, alpha, beta, maximizingPlayer) {
+            const moves = generateLegalMovesForAI(maximizingPlayer ? 'b' : 'w');
+
+            if (depth === 0 || moves.length === 0) {
+                return evaluatePosition();
+            }
+
+            if (maximizingPlayer) {
+                let maxEval = -Infinity;
+                for (const move of moves) {
+                    // Make move
+                    const snapshot = {
+                        board: cloneBoard(board),
+                        castling: { ...castling },
+                        enPassant,
+                        activeColor,
+                        capturedPieces: { w:[...capturedPieces.w], b:[...capturedPieces.b] }
+                    };
+
+                    applyMove(move);
+
+                    const eval = minimax(depth - 1, alpha, beta, false);
+
+                    // Undo move
+                    board = cloneBoard(snapshot.board);
+                    castling = { ...snapshot.castling };
+                    enPassant = snapshot.enPassant;
+                    activeColor = snapshot.activeColor;
+                    capturedPieces = { w:[...snapshot.capturedPieces.w], b:[...snapshot.capturedPieces.b] };
+
+                    maxEval = Math.max(maxEval, eval);
+                    alpha = Math.max(alpha, eval);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (const move of moves) {
+                    // Make move
+                    const snapshot = {
+                        board: cloneBoard(board),
+                        castling: { ...castling },
+                        enPassant,
+                        activeColor,
+                        capturedPieces: { w:[...capturedPieces.w], b:[...capturedPieces.b] }
+                    };
+
+                    applyMove(move);
+
+                    const eval = minimax(depth - 1, alpha, beta, true);
+
+                    // Undo move
+                    board = cloneBoard(snapshot.board);
+                    castling = { ...snapshot.castling };
+                    enPassant = snapshot.enPassant;
+                    activeColor = snapshot.activeColor;
+                    capturedPieces = { w:[...snapshot.capturedPieces.w], b:[...snapshot.capturedPieces.b] };
+
+                    minEval = Math.min(minEval, eval);
+                    beta = Math.min(beta, eval);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function findBestMove() {
+            const moves = generateLegalMovesForAI('b');
+            if (moves.length === 0) return null;
+
+            const depths = { easy: 2, medium: 3, hard: 4 };
+            const depth = depths[difficulty] || 3;
+
+            let bestMove = null;
+            let bestValue = -Infinity;
+
+            for (const move of moves) {
+                // Make move
+                const snapshot = {
+                    board: cloneBoard(board),
+                    castling: { ...castling },
+                    enPassant,
+                    activeColor,
+                    capturedPieces: { w:[...capturedPieces.w], b:[...capturedPieces.b] }
+                };
+
+                applyMove(move);
+
+                const moveValue = minimax(depth - 1, -Infinity, Infinity, false); // Use selected depth
+
+                // Undo move
+                board = cloneBoard(snapshot.board);
+                castling = { ...snapshot.castling };
+                enPassant = snapshot.enPassant;
+                activeColor = snapshot.activeColor;
+                capturedPieces = { w:[...snapshot.capturedPieces.w], b:[...snapshot.capturedPieces.b] };
+
+                if (moveValue > bestValue) {
+                    bestValue = moveValue;
+                    bestMove = move;
+                }
+            }
+
+            return bestMove;
+        }
+
+        function makeAIMove() {
+            if (aiThinking || activeColor !== 'b' || gameMode !== 'human-computer') return;
+
+            aiThinking = true;
+            statusEl.textContent = 'Computer is thinking...';
+
+            setTimeout(() => {
+                const bestMove = findBestMove();
+                if (bestMove) {
+                    applyMove(bestMove);
+                    render();
+                }
+                aiThinking = false;
+            }, 100);
+        }
+
         initBoard();
+
+        // Initialize UI
+        document.getElementById('difficulty').style.display = gameMode === 'human-computer' ? 'inline-block' : 'none';
     </script>
 </body>
 </html>

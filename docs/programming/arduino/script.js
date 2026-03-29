@@ -42,8 +42,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect digital pin 13 to LED with resistor to ground. In setup, pinMode(13, OUTPUT) sets pin 13 as output. In loop, HIGH turns LED on, delay(1000) waits 1 second, LOW turns LED off, delay(1000) waits 1 second. This repeats.",
-                    hi: "Arduino mein pin 13 ko LED aur resistor ke saath ground se jodte hain. setup() mein pinMode(13, OUTPUT) pin ko output bana deta hai. loop() mein digitalWrite(13, HIGH) LED on karta hai, delay(1000) 1 second ka rukawat hai, digitalWrite(13, LOW) LED off karta hai, delay(1000) wapas 1 second ka rukawat hai. yeh cycle repeat hota hai."
+                    en: "Hardware: LED anode to digital pin 13, LED cathode to resistor, then to GND. If you use the built-in board LED, no external wiring is needed. In setup(), pinMode(13, OUTPUT) sets pin 13 as output. In loop(), digitalWrite(13, HIGH) turns the LED on, delay(1000) waits 1 second, digitalWrite(13, LOW) turns it off, and delay(1000) waits 1 second.",
+                    hi: "Hardware: LED ka lambai wala pin digital pin 13 se jodein, chhota pin resistor ke through ground se jodein. Agar aap built-in board LED use kar rahe hain toh extra wiring nahi chahiye. setup() mein pinMode(13, OUTPUT) pin 13 ko output banata hai. loop() mein digitalWrite(13, HIGH) LED ko on karta hai, delay(1000) 1 second ke liye rukta hai, digitalWrite(13, LOW) LED ko off karta hai, aur delay(1000) fir rukta hai."
                 }
             },
             2: {
@@ -71,8 +71,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect LED to pin 13 with resistor. setup() sets pin 13 as output. loop() turns LED ON with HIGH, waits 1 second, turns LED OFF with LOW, waits 1 second. This is simple blink behavior.",
-                    hi: "LED ko pin 13 aur resistor se jodke ground par lagayein. setup() mein pin 13 output set hota hai. loop() mein digitalWrite(13, HIGH) say LED jalti hai, delay(1000) 1 second ke liye rukta hai, phir digitalWrite(13, LOW) say LED band hota hai, delay(1000) phir rukta hai. Yeh blink pattern hai."
+                    en: "Hardware: LED anode to pin 13, cathode to resistor and then GND. setup() sets pin 13 as OUTPUT. loop() uses digitalWrite(13, HIGH) to turn LED on, delay(1000) to keep it on for 1 second, digitalWrite(13, LOW) to turn it off, and delay(1000) again. This creates a blink.",
+                    hi: "Hardware: LED ka anode pin 13 se jodein, cathode resistor ke through GND se jodein. setup() pin 13 ko OUTPUT set karta hai. loop() digitalWrite(13, HIGH) se LED ko on karta hai, delay(1000) 1 second ke liye rukta hai, digitalWrite(13, LOW) se LED ko off karta hai, aur delay(1000) phir rukta hai. Yeh blink banata hai."
                 }
             },
             3: {
@@ -124,8 +124,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect LEDs to pins 13, 12, and 11 through resistors. setup() sets all pins as OUTPUT. loop() lights one LED at a time for 500 ms while turning others off, creating a rotating blink pattern.",
-                    hi: "LEDs ko pin 13, 12, 11 par resistor ke through lagayein. setup() mein sab pin OUTPUT set hain. loop() mein ek-ek LED ko 500 ms ke liye on karta hai aur baaki ko off karta hai, jis se ek ghoomte hue blink pattern banta hai."
+                    en: "Hardware: three LEDs each with a resistor, connected to pins 13, 12, and 11. All LED cathodes should go to common ground. setup() sets pins 13, 12, and 11 as OUTPUT. loop() turns only one LED on at a time for 500 ms, then moves to the next LED to create a rotating blink effect.",
+                    hi: "Hardware: teen LEDs ko resistor ke saath pin 13, 12, aur 11 se jodein. Sab LED cathode common ground se jani chahiye. setup() pins 13, 12, 11 ko OUTPUT set karta hai. loop() ek samay par sirf ek LED on karta hai 500 ms ke liye, phir doosri par chala jaata hai, jis se ghoomta hua blink effect milta hai."
                 }
             },
             4: {
@@ -157,8 +157,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect DC motor driver input pin to Arduino pin 9, and enable motor supply. setup() sets pin 9 as OUTPUT. loop() uses analogWrite(9, 255) for full speed, 128 for half speed, 0 to stop, each for 2 seconds.",
-                    hi: "DC motor driver ke input ko Arduino pin 9 se jodein, aur motor supply de. setup() mein pin 9 OUTPUT set hai. loop() analogWrite(9, 255) se full speed, 128 se half speed, aur 0 se stop karta hai, har stage 2 second ke liye."
+                    en: "Hardware: use a DC motor driver or transistor. Arduino pin 9 should connect to the driver input or transistor base (with a resistor). The motor power must come from an external supply, and the motor GND must share ground with the Arduino. setup() sets pin 9 as OUTPUT. loop() writes analog values to pin 9 for full speed, half speed, and stop, each for 2 seconds.",
+                    hi: "Hardware: DC motor driver ya transistor ka istemal karein. Arduino pin 9 ko driver input ya resistor ke through transistor base se jodein. Motor power bahar se de aur motor ka ground Arduino ground ke saath common ho. setup() pin 9 ko OUTPUT set karta hai. loop() analogWrite(9, 255) se full speed, 128 se half speed, aur 0 se stop karta hai, har stage 2 second ke liye."
                 }
             },
             5: {
@@ -202,8 +202,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect two DC motor driver channels to pins 9 and 10. setup() sets both as OUTPUT. loop() runs first motor full on while second off, then second full on while first off, then both half speed, each for 2 seconds.",
-                    hi: "Do DC motor channels ko pin 9 aur 10 se jodein. setup() mein dono OUTPUT set hain. loop() pehle ek motor full on karega jab doosra off hai, fir doosra full on jab pehla off hai, phir dono half speed chalenge, har stage 2 second rehga."
+                    en: "Hardware: connect two DC motor driver channels to Arduino pins 9 and 10. Each motor driver channel should have its motor power supply and the motor grounds must share common ground with the Arduino. setup() sets pins 9 and 10 as OUTPUT. loop() alternates one motor on while the other is off, then runs both at half speed, each state for 2 seconds.",
+                    hi: "Hardware: do DC motor driver channels ko Arduino pins 9 aur 10 se jodein. Har motor driver channel ke liye motor power supply hona chahiye aur motor grounds Arduino ground ke saath common hone chahiye. setup() pins 9 aur 10 ko OUTPUT set karta hai. loop() pehle ek motor on karta hai jab doosra off hai, fir doosra on karta hai jab pehla off hai, phir dono half speed par chalta hai, har state 2 second ke liye."
                 }
             },
             6: {
@@ -261,8 +261,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect ultrasonic trig to pin 9 and echo to pin 10. setup() initializes serial and pin modes. loop() sends a pulse from trigPin and reads echoPin duration. distance is calculated from duration and printed. Use this to measure object distance.",
-                    hi: "Ultrasonic module mein trig ko pin 9 aur echo ko pin 10 se jodein. setup() serial aur pin modes set karta hai. loop() trig se pulse bhejta hai, echo pin se duration padhta hai, distance duration se calculate karta hai aur serial par likhta hai. yeh object ki doori naptayega."
+                    en: "Hardware: HC-SR04 ultrasonic sensor VCC to 5V, GND to Arduino GND, Trig to pin 9, Echo to pin 10. setup() initializes Serial at 9600 and sets trigPin OUTPUT and echoPin INPUT. loop() sends a pulse on trigPin, reads the pulse duration on echoPin, converts that duration to distance, and prints the result to Serial.",
+                    hi: "Hardware: HC-SR04 ultrasonic sensor ka VCC 5V se, GND Arduino GND se, Trig pin 9 se, aur Echo pin 10 se jodein. setup() Serial ko 9600 par initialize karta hai aur trigPin ko OUTPUT, echoPin ko INPUT set karta hai. loop() trigPin par pulse bhejta hai, echoPin se duration padhta hai, duration ko distance mein badalta hai, aur result Serial par print karta hai."
                 }
             },
             7: {
@@ -302,8 +302,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect LED to pin 13 and serial monitor to USB. setup() starts Serial and sets pin 13 output. loop() uses for loop to blink LED 5 times, printing count to Serial each blink, then waits 2 seconds before repeating.",
-                    hi: "LED ko pin 13 se jodein aur serial monitor ko USB se. setup() Serial start karta hai aur pin 13 output set karta hai. loop() for loop se LED ko 5 baar blink karta hai, har blink par count Serial par print karta hai, fir 2 second ka rukne ke liye delay karta hai."
+                    en: "Hardware: LED anode to pin 13, cathode to resistor to GND, and open the Serial Monitor over USB. setup() starts Serial at 9600 and sets pin 13 as OUTPUT. loop() uses a for loop to blink the LED 5 times, printing the blink count to Serial on each cycle, then waits 2 seconds before repeating.",
+                    hi: "Hardware: LED ka anode pin 13 se jodein, cathode resistor ke through GND se jodein, aur USB ke zariye Serial Monitor kholen. setup() Serial ko 9600 par chalata hai aur pin 13 ko OUTPUT set karta hai. loop() for loop se LED ko 5 baar blink karta hai aur har cycle mein blink count Serial par print karta hai, phir 2 second ke liye rukta hai."
                 }
             },
             8: {
@@ -347,8 +347,8 @@ void loop() {
                     "}"
                 ],
                 instructions: {
-                    en: "Connect servo signal wire to pin 9, power to 5V and ground common with Arduino. setup() attaches servo to pin 9. loop() moves servo from 0 to 180 degrees and back to 0 with 15 ms delay steps, making sweeping motion.",
-                    hi: "Servo signal wire ko pin 9 se jodein, power 5V aur ground Arduino ke ground ke saath common rakhein. setup() mein servo ko pin 9 se attach kiya jaata hai. loop() servo ko 0 se 180 degree aur phir 0 degree tak 15 ms step mein chalata hai, sweeping motion banata hai."
+                    en: "Hardware: servo signal wire to pin 9, servo VCC to 5V, servo GND to Arduino GND (common ground). setup() attaches the servo to pin 9. loop() sweeps the servo from 0 to 180 degrees and back to 0 using 15 ms delay steps.",
+                    hi: "Hardware: servo signal wire pin 9 se jodein, servo VCC 5V se aur servo GND Arduino GND ke saath common rakhein. setup() servo ko pin 9 se attach karta hai. loop() servo ko 0 se 180 degree tak aur phir 0 degree tak 15 ms step mein chalata hai."
                 }
             }
         };
