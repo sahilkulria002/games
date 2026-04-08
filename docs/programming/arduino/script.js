@@ -350,6 +350,281 @@ void loop() {
                     en: "Hardware: servo signal wire to pin 9, servo VCC to 5V, servo GND to Arduino GND (common ground). setup() attaches the servo to pin 9. loop() sweeps the servo from 0 to 180 degrees and back to 0 using 15 ms delay steps.",
                     hi: "Hardware: servo signal wire pin 9 se jodein, servo VCC 5V se aur servo GND Arduino GND ke saath common rakhein. setup() servo ko pin 9 se attach karta hai. loop() servo ko 0 se 180 degree tak aur phir 0 degree tak 15 ms step mein chalata hai."
                 }
+            },
+            9: {
+                title: "Level 9: If Else with LED",
+                correctCode: `const int buttonPin = 2;
+const int ledPin = 13;
+
+void setup() {
+    pinMode(buttonPin, INPUT_PULLUP);
+    pinMode(ledPin, OUTPUT);
+}
+
+void loop() {
+    int buttonState = digitalRead(buttonPin);
+
+    if (buttonState == LOW) {
+        digitalWrite(ledPin, HIGH);
+    } else {
+        digitalWrite(ledPin, LOW);
+    }
+}`,
+                wordBlocks: [
+                    "const int buttonPin = 2;",
+                    "const int ledPin = 13;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(buttonPin, INPUT_PULLUP);",
+                    "    pinMode(ledPin, OUTPUT);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    int buttonState = digitalRead(buttonPin);",
+                    "",
+                    "    if (buttonState == LOW) {",
+                    "        digitalWrite(ledPin, HIGH);",
+                    "    } else {",
+                    "        digitalWrite(ledPin, LOW);",
+                    "    }",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: connect push button to pin 2 and GND, and LED to pin 13 (or use built-in LED). setup() enables INPUT_PULLUP for button and OUTPUT for LED. loop() uses if/else: if button is pressed (LOW), LED turns on, else LED turns off.",
+                    hi: "Hardware: push button ko pin 2 aur GND se jodein, aur LED ko pin 13 se jodein (ya built-in LED use karein). setup() button ke liye INPUT_PULLUP aur LED ke liye OUTPUT set karta hai. loop() mein if/else hai: agar button press ho (LOW) to LED on, warna LED off."
+                }
+            },
+            10: {
+                title: "Level 10: If Else with Servo",
+                correctCode: `#include <Servo.h>
+
+Servo gateServo;
+const int potPin = A0;
+
+void setup() {
+    gateServo.attach(9);
+}
+
+void loop() {
+    int sensorValue = analogRead(potPin);
+
+    if (sensorValue > 512) {
+        gateServo.write(180);
+    } else {
+        gateServo.write(0);
+    }
+
+    delay(20);
+}`,
+                wordBlocks: [
+                    "#include <Servo.h>",
+                    "",
+                    "Servo gateServo;",
+                    "const int potPin = A0;",
+                    "",
+                    "void setup() {",
+                    "    gateServo.attach(9);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    int sensorValue = analogRead(potPin);",
+                    "",
+                    "    if (sensorValue > 512) {",
+                    "        gateServo.write(180);",
+                    "    } else {",
+                    "        gateServo.write(0);",
+                    "    }",
+                    "",
+                    "    delay(20);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: servo signal to pin 9, VCC to 5V, GND to GND, and potentiometer middle pin to A0. loop() reads analog value from A0. if value is greater than 512, servo moves to 180 degrees; else servo moves to 0 degrees.",
+                    hi: "Hardware: servo signal pin 9 par, VCC 5V par, GND common ground par, aur potentiometer ka middle pin A0 par jodein. loop() A0 ka analog value padhta hai. agar value 512 se badi ho to servo 180 degree par jaata hai, warna 0 degree par."
+                }
+            },
+            11: {
+                title: "Level 11: If Else with DC Motor",
+                correctCode: `const int ldrPin = A0;
+const int motorPin = 9;
+
+void setup() {
+    pinMode(motorPin, OUTPUT);
+}
+
+void loop() {
+    int lightValue = analogRead(ldrPin);
+
+    if (lightValue < 400) {
+        analogWrite(motorPin, 220);
+    } else {
+        analogWrite(motorPin, 0);
+    }
+
+    delay(100);
+}`,
+                wordBlocks: [
+                    "const int ldrPin = A0;",
+                    "const int motorPin = 9;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(motorPin, OUTPUT);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    int lightValue = analogRead(ldrPin);",
+                    "",
+                    "    if (lightValue < 400) {",
+                    "        analogWrite(motorPin, 220);",
+                    "    } else {",
+                    "        analogWrite(motorPin, 0);",
+                    "    }",
+                    "",
+                    "    delay(100);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: LDR sensor output to A0 and DC motor driver input to pin 9. In loop(), if room is dark (light value < 400), motor runs at high speed. Else, motor stops.",
+                    hi: "Hardware: LDR sensor ka output A0 par jodein aur DC motor driver ka input pin 9 par jodein. loop() mein agar andhera ho (light value < 400) to motor high speed par chalta hai. warna motor band ho jaata hai."
+                }
+            },
+            12: {
+                title: "Level 12: If Else with Ultrasonic and LED",
+                correctCode: `const int trigPin = 9;
+const int echoPin = 10;
+const int ledPin = 13;
+
+void setup() {
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+    pinMode(ledPin, OUTPUT);
+    Serial.begin(9600);
+}
+
+void loop() {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    long duration = pulseIn(echoPin, HIGH);
+    int distance = duration * 0.034 / 2;
+
+    if (distance < 20) {
+        digitalWrite(ledPin, HIGH);
+    } else {
+        digitalWrite(ledPin, LOW);
+    }
+
+    Serial.println(distance);
+    delay(100);
+}`,
+                wordBlocks: [
+                    "const int trigPin = 9;",
+                    "const int echoPin = 10;",
+                    "const int ledPin = 13;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(trigPin, OUTPUT);",
+                    "    pinMode(echoPin, INPUT);",
+                    "    pinMode(ledPin, OUTPUT);",
+                    "    Serial.begin(9600);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    digitalWrite(trigPin, LOW);",
+                    "    delayMicroseconds(2);",
+                    "    digitalWrite(trigPin, HIGH);",
+                    "    delayMicroseconds(10);",
+                    "    digitalWrite(trigPin, LOW);",
+                    "",
+                    "    long duration = pulseIn(echoPin, HIGH);",
+                    "    int distance = duration * 0.034 / 2;",
+                    "",
+                    "    if (distance < 20) {",
+                    "        digitalWrite(ledPin, HIGH);",
+                    "    } else {",
+                    "        digitalWrite(ledPin, LOW);",
+                    "    }",
+                    "",
+                    "    Serial.println(distance);",
+                    "    delay(100);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: HC-SR04 trig to pin 9, echo to pin 10, LED to pin 13. loop() measures distance and uses if/else: if object is closer than 20 cm, LED turns on; else LED turns off.",
+                    hi: "Hardware: HC-SR04 ka trig pin 9 par, echo pin 10 par, aur LED pin 13 par jodein. loop() distance measure karta hai aur if/else lagata hai: agar object 20 cm se paas ho to LED on, warna LED off."
+                }
+            },
+            13: {
+                title: "Level 13: If Else If Traffic LEDs",
+                correctCode: `const int sensorPin = A0;
+const int greenLed = 11;
+const int yellowLed = 12;
+const int redLed = 13;
+
+void setup() {
+    pinMode(greenLed, OUTPUT);
+    pinMode(yellowLed, OUTPUT);
+    pinMode(redLed, OUTPUT);
+}
+
+void loop() {
+    int value = analogRead(sensorPin);
+
+    if (value < 300) {
+        digitalWrite(greenLed, HIGH);
+        digitalWrite(yellowLed, LOW);
+        digitalWrite(redLed, LOW);
+    } else if (value < 700) {
+        digitalWrite(greenLed, LOW);
+        digitalWrite(yellowLed, HIGH);
+        digitalWrite(redLed, LOW);
+    } else {
+        digitalWrite(greenLed, LOW);
+        digitalWrite(yellowLed, LOW);
+        digitalWrite(redLed, HIGH);
+    }
+
+    delay(100);
+}`,
+                wordBlocks: [
+                    "const int sensorPin = A0;",
+                    "const int greenLed = 11;",
+                    "const int yellowLed = 12;",
+                    "const int redLed = 13;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(greenLed, OUTPUT);",
+                    "    pinMode(yellowLed, OUTPUT);",
+                    "    pinMode(redLed, OUTPUT);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    int value = analogRead(sensorPin);",
+                    "",
+                    "    if (value < 300) {",
+                    "        digitalWrite(greenLed, HIGH);",
+                    "        digitalWrite(yellowLed, LOW);",
+                    "        digitalWrite(redLed, LOW);",
+                    "    } else if (value < 700) {",
+                    "        digitalWrite(greenLed, LOW);",
+                    "        digitalWrite(yellowLed, HIGH);",
+                    "        digitalWrite(redLed, LOW);",
+                    "    } else {",
+                    "        digitalWrite(greenLed, LOW);",
+                    "        digitalWrite(yellowLed, LOW);",
+                    "        digitalWrite(redLed, HIGH);",
+                    "    }",
+                    "",
+                    "    delay(100);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: connect three LEDs to pins 11, 12, 13 and sensor/potentiometer to A0. loop() uses if, else if, else to show green, yellow, or red based on sensor value ranges.",
+                    hi: "Hardware: teen LEDs ko pins 11, 12, 13 se jodein aur sensor/potentiometer ko A0 par jodein. loop() if, else if, else use karke sensor value ke hisaab se green, yellow, ya red LED jalata hai."
+                }
             }
         };
     }
