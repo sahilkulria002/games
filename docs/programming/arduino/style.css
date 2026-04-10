@@ -63,6 +63,16 @@ h3 {
     transform: translateY(-2px);
 }
 
+.level-btn.assignment-btn {
+    border-color: #ff4d4d;
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.08);
+}
+
+.level-btn.assignment-btn:hover {
+    background: rgba(255, 77, 77, 0.22);
+}
+
 .level-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;

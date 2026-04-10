@@ -558,7 +558,16 @@ void loop() {
                 }
             },
             13: {
-                title: "Level 13: If Else If Traffic LEDs",
+                title: "Level 13: Assignment - Ultrasonic and Multiple LEDs",
+                correctCode: ``,
+                wordBlocks: [],
+                instructions: {
+                    en: "Assignment (No starter code): Build an Arduino sketch using HC-SR04 ultrasonic sensor and three LEDs (LED1 on pin 11, LED2 on pin 12, LED3 on pin 13). Measure distance in centimeters continuously. Apply if/else-if/else logic for ranges: if distance is 1 to 10 cm, only LED1 should glow; if distance is 11 to 20 cm, LED1 should turn off and only LED2 should glow; if distance is 21 to 30 cm, LED1 and LED2 should turn off and only LED3 should glow; otherwise (distance greater than 30 cm or no valid object), all LEDs should stay OFF. Print distance in Serial Monitor so behavior can be verified.",
+                    hi: "Assignment (starter code nahi diya gaya): HC-SR04 ultrasonic sensor aur 3 LEDs (LED1 pin 11, LED2 pin 12, LED3 pin 13) ka use karke khud se Arduino sketch banao. Distance ko centimeters me continuously measure karo. if/else-if/else logic lagao: agar distance 1 se 10 cm ho to sirf LED1 ON ho; agar distance 11 se 20 cm ho to LED1 OFF ho aur sirf LED2 ON ho; agar distance 21 se 30 cm ho to LED1 aur LED2 OFF ho aur sirf LED3 ON ho; warna (distance 30 cm se zyada ho ya valid object na ho) sabhi LEDs OFF rahen. Behavior verify karne ke liye Serial Monitor me distance print karo."
+                }
+            },
+            14: {
+                title: "Level 14: If Else If Traffic LEDs",
                 correctCode: `const int sensorPin = A0;
 const int greenLed = 11;
 const int yellowLed = 12;
@@ -624,6 +633,175 @@ void loop() {
                 instructions: {
                     en: "Hardware: connect three LEDs to pins 11, 12, 13 and sensor/potentiometer to A0. loop() uses if, else if, else to show green, yellow, or red based on sensor value ranges.",
                     hi: "Hardware: teen LEDs ko pins 11, 12, 13 se jodein aur sensor/potentiometer ko A0 par jodein. loop() if, else if, else use karke sensor value ke hisaab se green, yellow, ya red LED jalata hai."
+                }
+            },
+            15: {
+                title: "Level 15: RTC (DS3231) and LED If Else",
+                correctCode: `#include <Wire.h>
+#include <RTClib.h>
+
+RTC_DS3231 rtc;
+const int ledPin = 13;
+
+void setup() {
+    pinMode(ledPin, OUTPUT);
+    Serial.begin(9600);
+
+    if (!rtc.begin()) {
+        Serial.println("RTC not found");
+        while (1) {}
+    }
+}
+
+void loop() {
+    DateTime now = rtc.now();
+    int sec = now.second();
+
+    if (sec % 3 == 0) {
+        digitalWrite(ledPin, HIGH);
+    } else {
+        digitalWrite(ledPin, LOW);
+    }
+
+    Serial.println(sec);
+    delay(200);
+}`,
+                wordBlocks: [
+                    "#include <Wire.h>",
+                    "#include <RTClib.h>",
+                    "",
+                    "RTC_DS3231 rtc;",
+                    "const int ledPin = 13;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(ledPin, OUTPUT);",
+                    "    Serial.begin(9600);",
+                    "",
+                    "    if (!rtc.begin()) {",
+                    "        Serial.println(\"RTC not found\");",
+                    "        while (1) {}",
+                    "    }",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    DateTime now = rtc.now();",
+                    "    int sec = now.second();",
+                    "",
+                    "    if (sec % 3 == 0) {",
+                    "        digitalWrite(ledPin, HIGH);",
+                    "    } else {",
+                    "        digitalWrite(ledPin, LOW);",
+                    "    }",
+                    "",
+                    "    Serial.println(sec);",
+                    "    delay(200);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: connect DS3231 via I2C (VCC to 5V, GND to GND, SDA to SDA, SCL to SCL) and LED to pin 13. loop() reads seconds from RTC. if second is multiple of 3, LED turns on; else LED turns off.",
+                    hi: "Hardware: DS3231 ko I2C se jodein (VCC 5V, GND GND, SDA SDA, SCL SCL) aur LED ko pin 13 se jodein. loop() RTC se seconds padhta hai. agar second 3 ka multiple ho to LED on, warna LED off."
+                }
+            },
+            16: {
+                title: "Level 16: HC-05 Bluetooth with LED If Else",
+                correctCode: `#include <SoftwareSerial.h>
+
+SoftwareSerial bluetooth(2, 3);
+const int ledPin = 13;
+
+void setup() {
+    pinMode(ledPin, OUTPUT);
+    bluetooth.begin(9600);
+}
+
+void loop() {
+    if (bluetooth.available()) {
+        char command = bluetooth.read();
+
+        if (command == '1') {
+            digitalWrite(ledPin, HIGH);
+        } else {
+            digitalWrite(ledPin, LOW);
+        }
+    }
+}`,
+                wordBlocks: [
+                    "#include <SoftwareSerial.h>",
+                    "",
+                    "SoftwareSerial bluetooth(2, 3);",
+                    "const int ledPin = 13;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(ledPin, OUTPUT);",
+                    "    bluetooth.begin(9600);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    if (bluetooth.available()) {",
+                    "        char command = bluetooth.read();",
+                    "",
+                    "        if (command == '1') {",
+                    "            digitalWrite(ledPin, HIGH);",
+                    "        } else {",
+                    "            digitalWrite(ledPin, LOW);",
+                    "        }",
+                    "    }",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: HC-05 VCC to 5V, GND to GND, HC-05 TXD to Arduino pin 2, HC-05 RXD to Arduino pin 3 (use voltage divider for RXD), and LED to pin 13. loop() checks Bluetooth data. if command is '1' then LED turns on, else LED turns off.",
+                    hi: "Hardware: HC-05 ka VCC 5V, GND GND, HC-05 TXD Arduino pin 2 par, HC-05 RXD Arduino pin 3 par jodein (RXD ke liye voltage divider use karein), aur LED pin 13 par jodein. loop() Bluetooth data check karta hai. agar command '1' ho to LED on, warna LED off."
+                }
+            },
+            17: {
+                title: "Level 17: HC-05 Bluetooth with DC Motor If Else",
+                correctCode: `#include <SoftwareSerial.h>
+
+SoftwareSerial bluetooth(2, 3);
+const int motorPin = 9;
+
+void setup() {
+    pinMode(motorPin, OUTPUT);
+    bluetooth.begin(9600);
+}
+
+void loop() {
+    if (bluetooth.available()) {
+        char command = bluetooth.read();
+
+        if (command == 'F') {
+            analogWrite(motorPin, 220);
+        } else {
+            analogWrite(motorPin, 0);
+        }
+    }
+}`,
+                wordBlocks: [
+                    "#include <SoftwareSerial.h>",
+                    "",
+                    "SoftwareSerial bluetooth(2, 3);",
+                    "const int motorPin = 9;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(motorPin, OUTPUT);",
+                    "    bluetooth.begin(9600);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    if (bluetooth.available()) {",
+                    "        char command = bluetooth.read();",
+                    "",
+                    "        if (command == 'F') {",
+                    "            analogWrite(motorPin, 220);",
+                    "        } else {",
+                    "            analogWrite(motorPin, 0);",
+                    "        }",
+                    "    }",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: HC-05 TXD to pin 2, RXD to pin 3 (through a voltage divider), and motor driver input to pin 9. Motor power should be external and all grounds must be common. loop() reads Bluetooth command. if command is 'F', motor runs; else motor stops.",
+                    hi: "Hardware: HC-05 TXD pin 2 par, RXD pin 3 par (voltage divider ke saath), aur motor driver input pin 9 par jodein. Motor power external rakhein aur sabka ground common ho. loop() Bluetooth command padhta hai. agar command 'F' ho to motor chalega, warna motor ruk jayega."
                 }
             }
         };
