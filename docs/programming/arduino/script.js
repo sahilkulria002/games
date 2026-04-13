@@ -649,12 +649,29 @@ void setup() {
 
     if (!rtc.begin()) {
         Serial.println("RTC not found");
-        while (1) {}
+        while (1);
     }
+
+    // Only set time if RTC lost power
+    // if (rtc.lostPower()) {
+        // Serial.println("RTC lost power, setting time...");
+
+        // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    // } else {
+        // Serial.println("RTC already has correct time");
+    // }
 }
 
 void loop() {
     DateTime now = rtc.now();
+
+    Serial.print("Time: ");
+    Serial.print(now.hour());
+    Serial.print(":");
+    Serial.print(now.minute());
+    Serial.print(":");
+    Serial.println(now.second());
+
     int sec = now.second();
 
     if (sec % 3 == 0) {
@@ -663,8 +680,7 @@ void loop() {
         digitalWrite(ledPin, LOW);
     }
 
-    Serial.println(sec);
-    delay(200);
+    delay(500);
 }`,
                 wordBlocks: [
                     "#include <Wire.h>",
@@ -674,32 +690,48 @@ void loop() {
                     "const int ledPin = 13;",
                     "",
                     "void setup() {",
-                    "    pinMode(ledPin, OUTPUT);",
-                    "    Serial.begin(9600);",
+                                        "  pinMode(ledPin, OUTPUT);",
+                                        "  Serial.begin(9600);",
                     "",
-                    "    if (!rtc.begin()) {",
-                    "        Serial.println(\"RTC not found\");",
-                    "        while (1) {}",
-                    "    }",
+                                        "  if (!rtc.begin()) {",
+                                        "    Serial.println(\"RTC not found\");",
+                                        "    while (1);",
+                                        "  }",
+                                        "",
+                                        "  // Only set time if RTC lost power",
+                                        "  // if (rtc.lostPower()) {",
+                                        "    // Serial.println(\"RTC lost power, setting time...\");",
+                                        "",
+                                        "    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));",
+                                        "  // } else {",
+                                        "    // Serial.println(\"RTC already has correct time\");",
+                                        "  // }",
                     "}",
                     "",
                     "void loop() {",
-                    "    DateTime now = rtc.now();",
-                    "    int sec = now.second();",
+                                        "  DateTime now = rtc.now();",
                     "",
-                    "    if (sec % 3 == 0) {",
-                    "        digitalWrite(ledPin, HIGH);",
-                    "    } else {",
-                    "        digitalWrite(ledPin, LOW);",
-                    "    }",
+                                        "  Serial.print(\"Time: \" );",
+                                        "  Serial.print(now.hour());",
+                                        "  Serial.print(\":\");",
+                                        "  Serial.print(now.minute());",
+                                        "  Serial.print(\":\");",
+                                        "  Serial.println(now.second());",
                     "",
-                    "    Serial.println(sec);",
-                    "    delay(200);",
+                                        "  int sec = now.second();",
+                                        "",
+                                        "  if (sec % 3 == 0) {",
+                                        "    digitalWrite(ledPin, HIGH);",
+                                        "  } else {",
+                                        "    digitalWrite(ledPin, LOW);",
+                                        "  }",
+                                        "",
+                                        "  delay(500);",
                     "}"
                 ],
                 instructions: {
-                    en: "Hardware: connect DS3231 via I2C (VCC to 5V, GND to GND, SDA to SDA, SCL to SCL) and LED to pin 13. loop() reads seconds from RTC. if second is multiple of 3, LED turns on; else LED turns off.",
-                    hi: "Hardware: DS3231 ko I2C se jodein (VCC 5V, GND GND, SDA SDA, SCL SCL) aur LED ko pin 13 se jodein. loop() RTC se seconds padhta hai. agar second 3 ka multiple ho to LED on, warna LED off."
+                                        en: "Hardware: connect DS3231 via I2C (VCC to 5V, GND to GND, SDA to A4, SCL to A5) and LED to pin 13. setup() checks RTC and includes optional lost-power time adjust block in comments. loop() prints Time as HH:MM:SS, then if seconds are a multiple of 3 LED turns ON, else LED turns OFF.",
+                                        hi: "Hardware: DS3231 ko I2C se jodein (VCC 5V, GND GND, SDA A4, SCL A5) aur LED ko pin 13 se jodein. setup() RTC check karta hai aur lost-power time set karne ka optional block comments me diya hai. loop() Time ko HH:MM:SS format me print karta hai, phir agar second 3 ka multiple ho to LED ON, warna LED OFF."
                 }
             },
             16: {
