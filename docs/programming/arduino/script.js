@@ -835,6 +835,178 @@ void loop() {
                     en: "Hardware: HC-05 TXD to pin 2, RXD to pin 3 (through a voltage divider), and motor driver input to pin 9. Motor power should be external and all grounds must be common. loop() reads Bluetooth command. if command is 'F', motor runs; else motor stops.",
                     hi: "Hardware: HC-05 TXD pin 2 par, RXD pin 3 par (voltage divider ke saath), aur motor driver input pin 9 par jodein. Motor power external rakhein aur sabka ground common ho. loop() Bluetooth command padhta hai. agar command 'F' ho to motor chalega, warna motor ruk jayega."
                 }
+            },
+            18: {
+                title: "Level 18: Passive Buzzer with Ultrasonic If Else",
+                correctCode: `const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 8;
+
+void setup() {
+    pinMode(trigPin, OUTPUT);
+    pinMode(echoPin, INPUT);
+    pinMode(buzzerPin, OUTPUT);
+    Serial.begin(9600);
+}
+
+void loop() {
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+
+    long duration = pulseIn(echoPin, HIGH);
+    int distance = duration * 0.034 / 2;
+
+    Serial.println(distance);
+
+    if (distance < 20) {
+        tone(buzzerPin, 1000);
+    } else if (distance >= 20 && distance <= 40) {
+        tone(buzzerPin, 1000);
+        delay(500);
+        noTone(buzzerPin);
+        delay(500);
+    } else {
+        noTone(buzzerPin);
+    }
+}`,
+                wordBlocks: [
+                    "const int trigPin = 9;",
+                    "const int echoPin = 10;",
+                    "const int buzzerPin = 8;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(trigPin, OUTPUT);",
+                    "    pinMode(echoPin, INPUT);",
+                    "    pinMode(buzzerPin, OUTPUT);",
+                    "    Serial.begin(9600);",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    digitalWrite(trigPin, LOW);",
+                    "    delayMicroseconds(2);",
+                    "    digitalWrite(trigPin, HIGH);",
+                    "    delayMicroseconds(10);",
+                    "    digitalWrite(trigPin, LOW);",
+                    "",
+                    "    long duration = pulseIn(echoPin, HIGH);",
+                    "    int distance = duration * 0.034 / 2;",
+                    "",
+                    "    Serial.println(distance);",
+                    "",
+                    "    if (distance < 20) {",
+                    "        tone(buzzerPin, 1000);",
+                    "    } else if (distance >= 20 && distance <= 40) {",
+                    "        tone(buzzerPin, 1000);",
+                    "        delay(500);",
+                    "        noTone(buzzerPin);",
+                    "        delay(500);",
+                    "    } else {",
+                    "        noTone(buzzerPin);",
+                    "    }",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: connect HC-SR04 (Trig pin 9, Echo pin 10), and passive buzzer signal to pin 8 with GND common. loop() measures distance. If distance is less than 20 cm, buzzer sounds continuously. If distance is from 20 to 40 cm, buzzer turns ON for 0.5 second and OFF for 0.5 second repeatedly. Otherwise buzzer stays OFF.",
+                    hi: "Hardware: HC-SR04 ko Trig pin 9, Echo pin 10 par jodein, aur passive buzzer ka signal pin 8 par jodein (GND common rakhein). loop() distance measure karta hai. Agar distance 20 cm se kam ho to buzzer continuous chalega. Agar distance 20 se 40 cm ke beech ho to buzzer 0.5 second ON aur 0.5 second OFF repeat karega. Warna buzzer OFF rahega."
+                }
+            },
+            19: {
+                title: "Level 19: RTC (DS3231) Passive Buzzer Pattern",
+                correctCode: `#include <Wire.h>
+#include <RTClib.h>
+
+RTC_DS3231 rtc;
+const int buzzerPin = 8;
+int lastTriggeredMinute = -1;
+
+void setup() {
+    pinMode(buzzerPin, OUTPUT);
+    Serial.begin(9600);
+
+    if (!rtc.begin()) {
+        Serial.println("RTC not found");
+        while (1);
+    }
+}
+
+void loop() {
+    DateTime now = rtc.now();
+
+    Serial.print("Time: ");
+    Serial.print(now.hour());
+    Serial.print(":");
+    Serial.print(now.minute());
+    Serial.print(":");
+    Serial.println(now.second());
+
+    if (now.second() == 0 && now.minute() != lastTriggeredMinute) {
+        lastTriggeredMinute = now.minute();
+
+        tone(buzzerPin, 50);
+        delay(1000);
+        noTone(buzzerPin);
+        delay(1000);
+
+        tone(buzzerPin, 50);
+        delay(1000);
+        noTone(buzzerPin);
+        delay(1000);
+    }
+
+    delay(50);
+}`,
+                wordBlocks: [
+                    "#include <Wire.h>",
+                    "#include <RTClib.h>",
+                    "",
+                    "RTC_DS3231 rtc;",
+                    "const int buzzerPin = 8;",
+                    "int lastTriggeredMinute = -1;",
+                    "",
+                    "void setup() {",
+                    "    pinMode(buzzerPin, OUTPUT);",
+                    "    Serial.begin(9600);",
+                    "",
+                    "    if (!rtc.begin()) {",
+                    "        Serial.println(\"RTC not found\");",
+                    "        while (1);",
+                    "    }",
+                    "}",
+                    "",
+                    "void loop() {",
+                    "    DateTime now = rtc.now();",
+                    "",
+                    "    Serial.print(\"Time: \");",
+                    "    Serial.print(now.hour());",
+                    "    Serial.print(\":\");",
+                    "    Serial.print(now.minute());",
+                    "    Serial.print(\":\");",
+                    "    Serial.println(now.second());",
+                    "",
+                    "    if (now.second() == 0 && now.minute() != lastTriggeredMinute) {",
+                    "        lastTriggeredMinute = now.minute();",
+                    "",
+                    "        tone(buzzerPin, 50);",
+                    "        delay(1000);",
+                    "        noTone(buzzerPin);",
+                    "        delay(1000);",
+                    "",
+                    "        tone(buzzerPin, 50);",
+                    "        delay(1000);",
+                    "        noTone(buzzerPin);",
+                    "        delay(1000);",
+                    "    }",
+                    "",
+                    "    delay(50);",
+                    "}"
+                ],
+                instructions: {
+                    en: "Hardware: connect DS3231 by I2C (VCC 5V, GND GND, SDA A4, SCL A5) and passive buzzer signal to pin 8. loop() reads RTC time. When second is exactly 0, buzzer beeps at 50 Hz for 1 second, pauses for 1 second, then beeps again for 1 second, then pauses for 1 second.",
+                    hi: "Hardware: DS3231 ko I2C se jodein (VCC 5V, GND GND, SDA A4, SCL A5) aur passive buzzer ka signal pin 8 par jodein. loop() RTC time padhta hai. Jab second exactly 0 ho, buzzer 50 Hz par 1 second beep karega, 1 second pause karega, phir 1 second beep karega, aur phir 1 second pause karega."
+                }
             }
         };
     }
