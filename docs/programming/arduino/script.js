@@ -445,47 +445,91 @@ void loop() {
             },
             11: {
                 title: "Level 11: If Else with DC Motor",
-                correctCode: `const int ldrPin = A0;
-const int motorPin = 9;
+                correctCode: `const int pin1 = 8;
+const int pin2 = 9;
+const int pwm = 10;
 
 void setup() {
-    pinMode(motorPin, OUTPUT);
+  Serial.begin(115200);
+  pinMode(pin1, OUTPUT);
+  pinMode(pin2, OUTPUT);
+  pinMode(pwm, OUTPUT);
+  digitalWrite(pin1, LOW);
+  digitalWrite(pin2, LOW);
+  digitalWrite(pwm, LOW);
 }
 
 void loop() {
-    int lightValue = analogRead(ldrPin);
-
-    if (lightValue < 400) {
-        analogWrite(motorPin, 220);
-    } else {
-        analogWrite(motorPin, 0);
+  if(Serial.available()) {
+    String cmd = Serial.readStringUntil('\\n');
+    cmd.trim();
+    
+    if(cmd == "f") {
+      digitalWrite(pin1, HIGH);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 200);
+      delay(2000);
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 0);
     }
-
-    delay(100);
+    
+    if(cmd == "b") {
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, HIGH);
+      analogWrite(pwm, 200);
+      delay(2000);
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 0);
+    }
+  }
 }`,
                 wordBlocks: [
-                    "const int ldrPin = A0;",
-                    "const int motorPin = 9;",
+                    "const int pin1 = 8;",
+                    "const int pin2 = 9;",
+                    "const int pwm = 10;",
                     "",
                     "void setup() {",
-                    "    pinMode(motorPin, OUTPUT);",
+                    "  Serial.begin(115200);",
+                    "  pinMode(pin1, OUTPUT);",
+                    "  pinMode(pin2, OUTPUT);",
+                    "  pinMode(pwm, OUTPUT);",
+                    "  digitalWrite(pin1, LOW);",
+                    "  digitalWrite(pin2, LOW);",
+                    "  digitalWrite(pwm, LOW);",
                     "}",
                     "",
                     "void loop() {",
-                    "    int lightValue = analogRead(ldrPin);",
-                    "",
-                    "    if (lightValue < 400) {",
-                    "        analogWrite(motorPin, 220);",
-                    "    } else {",
-                    "        analogWrite(motorPin, 0);",
+                    "  if(Serial.available()) {",
+                    "    String cmd = Serial.readStringUntil('\\n');",
+                    "    cmd.trim();",
+                    "    ",
+                    "    if(cmd == \"f\") {",
+                    "      digitalWrite(pin1, HIGH);",
+                    "      digitalWrite(pin2, LOW);",
+                    "      analogWrite(pwm, 200);",
+                    "      delay(2000);",
+                    "      digitalWrite(pin1, LOW);",
+                    "      digitalWrite(pin2, LOW);",
+                    "      analogWrite(pwm, 0);",
                     "    }",
-                    "",
-                    "    delay(100);",
+                    "    ",
+                    "    if(cmd == \"b\") {",
+                    "      digitalWrite(pin1, LOW);",
+                    "      digitalWrite(pin2, HIGH);",
+                    "      analogWrite(pwm, 200);",
+                    "      delay(2000);",
+                    "      digitalWrite(pin1, LOW);",
+                    "      digitalWrite(pin2, LOW);",
+                    "      analogWrite(pwm, 0);",
+                    "    }",
+                    "  }",
                     "}"
                 ],
                 instructions: {
-                    en: "Hardware: LDR sensor output to A0 and DC motor driver input to pin 9. In loop(), if room is dark (light value < 400), motor runs at high speed. Else, motor stops.",
-                    hi: "Hardware: LDR sensor ka output A0 par jodein aur DC motor driver ka input pin 9 par jodein. loop() mein agar andhera ho (light value < 400) to motor high speed par chalta hai. warna motor band ho jaata hai."
+                    en: "Hardware: connect DC motor to pins 8, 9 (direction control) and pin 10 (PWM speed). Send serial commands 'f' for forward and 'b' for backward. The motor runs for 2 seconds then stops.",
+                    hi: "Hardware: DC motor ko pins 8, 9 (direction control) aur pin 10 (PWM speed) se jodein. Serial ke through 'f' command forward aur 'b' command backward bhejein. Motor 2 second chalta hai phir band ho jaata hai."
                 }
             },
             12: {

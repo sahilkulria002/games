@@ -1,18 +1,40 @@
-const int ldrPin = A0;
-const int motorPin = 9;
+const int pin1 = 8;
+const int pin2 = 9;
+const int pwm = 10;
 
 void setup() {
-    pinMode(motorPin, OUTPUT);
+  Serial.begin(115200);
+  pinMode(pin1, OUTPUT);
+  pinMode(pin2, OUTPUT);
+  pinMode(pwm, OUTPUT);
+  digitalWrite(pin1, LOW);
+  digitalWrite(pin2, LOW);
+  digitalWrite(pwm, LOW);
 }
 
 void loop() {
-    int lightValue = analogRead(ldrPin);
-
-    if (lightValue < 400) {
-        analogWrite(motorPin, 220);
-    } else {
-        analogWrite(motorPin, 0);
+  if(Serial.available()) {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    
+    if(cmd == "f") {
+      digitalWrite(pin1, HIGH);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 200);
+      delay(2000);
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 0);
     }
-
-    delay(100);
+    
+    if(cmd == "b") {
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, HIGH);
+      analogWrite(pwm, 200);
+      delay(2000);
+      digitalWrite(pin1, LOW);
+      digitalWrite(pin2, LOW);
+      analogWrite(pwm, 0);
+    }
+  }
 }
